@@ -86,7 +86,7 @@ home.packages = [
 
 ```nix
 home.shellAliases = {
-  hms = "nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default";
+  hms = "nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default";
   ll = "ls -l";
   # 追加
   la = "ls -la";
@@ -111,7 +111,7 @@ imports = [
 
 | エイリアス | コマンド |
 |---|---|
-| `hms` | `nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default` |
+| `hms` | `nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default` |
 | `ll` | `ls -l` |
 | `co` | `git checkout` |
 | `br` | `git branch` |
