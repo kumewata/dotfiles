@@ -23,8 +23,8 @@ nix flake update
 - `modules/` - Modular config split by concern:
   - `packages.nix` - CLI tools installed via Nix (ripgrep, fd, etc.)
   - `shell.nix` - Zsh config with Oh My Zsh, shell aliases, and `initExtra` scripts (mise, gcloud, Java, etc.)
-  - `claude-skills.nix` - Symlinks `skills-files/` to `~/.claude/skills` for Claude Code skill integration.
-- `skills-files/` - Claude Code skill definitions deployed via Home Manager.
+  - `claude-skills.nix` - Symlinks `config/agents/skills/` to `~/.claude/skills` for Claude Code skill integration.
+- `config/agents/skills/` - Claude Code skill definitions deployed via Home Manager.
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions
