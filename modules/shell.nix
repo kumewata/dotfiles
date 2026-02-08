@@ -12,7 +12,7 @@
     };
 
     # 追加の初期化スクリプト（.zshrc の User configuration 以下）
-    initExtra = ''
+    initContent = ''
       # Add ~/.local/bin to PATH if it exists
       if [ -d "''$HOME/.local/bin" ]; then
         export PATH="''$HOME/.local/bin:''$PATH"
