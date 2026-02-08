@@ -2,7 +2,7 @@
 
 macOS (Apple Silicon) の開発環境を **Nix Flakes** + **Home Manager** で宣言的に管理する dotfiles リポジトリ。
 
-シェル設定、CLI ツール、エイリアスなどを Nix の設定ファイルで一元管理し、`hms` コマンド一つで環境を再現できる。
+シェル設定、CLI ツール、エイリアスなどを Nix の設定ファイルで一元管理し、`hms` コマンド一つで環境を再現できる。ユーザー名は `$USER` 環境変数から動的に解決されるため、複数の Mac デバイスで同じ設定をそのまま利用可能。
 
 ## 前提条件
 
@@ -31,7 +31,7 @@ cd ~/dotfiles
 ### 3. 設定の適用
 
 ```bash
-nix run github:nix-community/home-manager/release-25.11 -- switch --flake .#kumewataru
+nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default
 ```
 
 適用後、ターミナルを再起動すると Zsh の設定やエイリアスが有効になる。
@@ -86,7 +86,7 @@ home.packages = [
 
 ```nix
 home.shellAliases = {
-  hms = "nix run github:nix-community/home-manager/release-25.11 -- switch --flake .#kumewataru";
+  hms = "nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default";
   ll = "ls -l";
   # 追加
   la = "ls -la";
@@ -111,7 +111,7 @@ imports = [
 
 | エイリアス | コマンド |
 |---|---|
-| `hms` | `nix run github:nix-community/home-manager/release-25.11 -- switch --flake .#kumewataru` |
+| `hms` | `nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default` |
 | `ll` | `ls -l` |
 | `co` | `git checkout` |
 | `br` | `git branch` |
