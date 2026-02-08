@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 {
   # home.nix から移動してきた設定

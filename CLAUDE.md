@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a macOS (Apple Silicon) dotfiles repo managed with **Nix Flakes** and **Home Manager**. It declaratively configures the user environment (shell, packages, dotfiles) for the user `kumewataru`.
+This is a macOS (Apple Silicon) dotfiles repo managed with **Nix Flakes** and **Home Manager**. It declaratively configures the user environment (shell, packages, dotfiles). The username is dynamically resolved from `$USER` at build time via `--impure` flag, so the config works across multiple devices without modification.
 
 ## Key Commands
 
 ```bash
 # Apply configuration changes (defined as shell alias `hms`)
-nix run github:nix-community/home-manager/release-25.11 -- switch --flake .#kumewataru
+nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default
 
 # Update flake inputs
 nix flake update
@@ -31,4 +31,5 @@ nix flake update
 
 - Shell variables in `initExtra` strings must be escaped as `''$VAR` (Nix indented string syntax).
 - All package references use `pkgs.<name>` from nixpkgs unstable.
-- The flake has a single homeConfiguration output for `kumewataru`.
+- The flake uses `builtins.getEnv "USER"` with `--impure` to dynamically resolve the username. No per-device edits needed.
+- `extraSpecialArgs` passes `username` to all modules.

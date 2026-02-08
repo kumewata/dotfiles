@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 {
   # ユーザー環境にインストールするパッケージのリスト

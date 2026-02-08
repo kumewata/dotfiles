@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 {
   programs.zsh = {
@@ -86,7 +86,7 @@
 
   home.shellAliases = {
     # Home Managerの設定を更新するコマンドのエイリアス
-    hms = "nix run github:nix-community/home-manager/release-25.11 -- switch --flake .#kumewataru";
+    hms = "nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default";
 
     # その他
     ll = "ls -l";

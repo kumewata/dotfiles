@@ -12,18 +12,22 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, ... }:
     let
-      # あなたのマシンの設定
       system = "aarch64-darwin"; # Apple Silicon Mac
       pkgs = nixpkgs.legacyPackages.${system};
+
     in {
       homeConfigurations."kumewataru" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
-        # home.nix を設定ファイルとして読み込む
+        # 実行時のユーザー名を取得（--impure フラグが必要、遅延評価される）
+        extraSpecialArgs = { username = builtins.getEnv "USER"; };
+
         modules = [ ./home.nix ];
       };
+
+      # 互換性のためのエイリアス
+      homeConfigurations."default" = self.homeConfigurations."kumewataru";
     };
 }
-

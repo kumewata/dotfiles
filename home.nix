@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 {
   # モジュールの読み込み
@@ -8,9 +8,9 @@
     ./modules/shell.nix
   ];
 
-  # ユーザー情報の設定
-  home.username = "kumewataru";
-  home.homeDirectory = "/Users/kumewataru";
+  # ユーザー情報の設定（extraSpecialArgs から受け取った username を使用）
+  home.username = username;
+  home.homeDirectory = "/Users/${username}";
 
   # Home Manager のバージョン互換性のための設定（変更不要）
   home.stateVersion = "25.11";
