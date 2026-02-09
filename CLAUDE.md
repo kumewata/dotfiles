@@ -23,8 +23,8 @@ nix flake update
 - `modules/` - Modular config split by concern:
   - `packages.nix` - CLI tools installed via Nix (ripgrep, fd, etc.)
   - `shell.nix` - Zsh config with Oh My Zsh, shell aliases, and `initExtra` scripts (mise, gcloud, Java, etc.)
-  - `claude-skills.nix` - Symlinks `config/agents/skills/` to `~/.claude/skills` for Claude Code skill integration.
-- `config/agents/skills/` - Claude Code skill definitions deployed via Home Manager.
+  - `agent-skills.nix` - [agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) を使い `config/agents/skills/` を `~/.claude/skills/` と `~/.codex/skills/` にデプロイ。`symlink-tree` 構造（rsync）で実ディレクトリとして配置。
+- `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions
@@ -32,4 +32,4 @@ nix flake update
 - Shell variables in `initExtra` strings must be escaped as `''$VAR` (Nix indented string syntax).
 - All package references use `pkgs.<name>` from nixpkgs unstable.
 - The flake uses `builtins.getEnv "USER"` with `--impure` to dynamically resolve the username. No per-device edits needed.
-- `extraSpecialArgs` passes `username` to all modules.
+- `extraSpecialArgs` passes `username` と `inputs` to all modules.

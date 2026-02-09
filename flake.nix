@@ -10,9 +10,16 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Agent Skills（Claude Code / Codex 等のスキル管理）
+    agent-skills = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "aarch64-darwin"; # Apple Silicon Mac
       pkgs = nixpkgs.legacyPackages.${system};
@@ -22,7 +29,11 @@
         inherit pkgs;
 
         # 実行時のユーザー名を取得（--impure フラグが必要、遅延評価される）
-        extraSpecialArgs = { username = builtins.getEnv "USER"; };
+        # inputs は agent-skills モジュールで使用
+        extraSpecialArgs = {
+          inherit inputs;
+          username = builtins.getEnv "USER";
+        };
 
         modules = [ ./home.nix ];
       };

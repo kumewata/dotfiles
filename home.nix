@@ -3,8 +3,7 @@
 {
   # モジュールの読み込み
   imports = [
-    ./modules/claude-skills.nix
-    ./modules/codex-skills.nix
+    ./modules/agent-skills.nix
     ./modules/git.nix
     ./modules/packages.nix
     ./modules/shell.nix
