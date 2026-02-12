@@ -27,7 +27,6 @@ codex exec -s read-only "<prompt>"
 **Optional flags:**
 - `-m <model>` - Override model (default: configured in `~/.codex/config.toml`)
 - `-C <path>` - Set working directory
-- `--ephemeral` - Skip session persistence (use for one-off reviews)
 
 ## Code Review
 
@@ -76,10 +75,10 @@ codex exec -s read-only "Review docs/architecture.md. Check for logical consiste
 Run `codex exec` via the Bash tool. The final review output prints to stdout.
 
 ```
-codex exec -s read-only --ephemeral "<review prompt>"
+codex exec -s read-only "<review prompt>"
 ```
 
-Use `--ephemeral` to avoid persisting review sessions. If the output is long, use `-o /tmp/codex-review.txt` and read the file afterward.
+If the output is long, use `-o /tmp/codex-review.txt` and read the file afterward.
 
 ## Prompt Construction Guidelines
 
