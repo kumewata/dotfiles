@@ -86,7 +86,7 @@
 
   home.shellAliases = {
     # Home Managerの設定を更新するコマンドのエイリアス
-    hms = "nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default";
+    hms = "nix run --impure github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default";
 
     # その他
     ll = "ls -l";
