@@ -52,4 +52,6 @@ in
   # エージェント定義のデプロイ（~/.claude/agents/）
   home.file.".claude/agents/steering-research.md".source =
     ../config/agents/definitions/steering-research.md;
+  home.file.".claude/agents/doc-search.md".source =
+    ../config/agents/definitions/doc-search.md;
 }

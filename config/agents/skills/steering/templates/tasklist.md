@@ -14,6 +14,8 @@ related:
   - design.md
 status: pending
 completion: 0%
+created_at: {YYYY-MM-DD}
+updated_at: {YYYY-MM-DD}
 ---
 
 # タスクリスト

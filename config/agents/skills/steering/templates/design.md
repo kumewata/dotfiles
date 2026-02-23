@@ -12,6 +12,8 @@ keywords: [{コンポーネント名}, {パターン名}, {ライブラリ名}]
 related:
   - requirements.md
   - tasklist.md
+created_at: {YYYY-MM-DD}
+updated_at: {YYYY-MM-DD}
 ---
 
 # 設計書
