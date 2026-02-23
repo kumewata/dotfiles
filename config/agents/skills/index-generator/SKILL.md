@@ -55,16 +55,26 @@ Glob('<target_dir>/**/*.md')
 各ファイルを Read ツールで読み込み、YAML Front Matter を抽出する。
 
 **Front Matter 抽出ルール**:
-- ファイルの先頭が `---` で始まる場合のみ Front Matter あり
-- 先頭の `---` から次の `---` までが Front Matter ブロック
+- ファイルの先頭が `---` で始まる場合のみ Front Matter あり（行頭限定・空白不可）
+- 先頭の `---` から次の行頭 `---` までが Front Matter ブロック（行頭に空白があるものは終端とみなさない）
 - それ以降は本文（処理対象外）
 
 **抽出するフィールド**:
 - `title`: ドキュメントタイトル（なければファイル名を使用）
-- `tags`: カテゴリタグ（リスト）
-- `keywords`: 固有名詞（リスト）
+- `tags`: カテゴリタグ（リスト形式 or 文字列。前後の空白を trim・重複を除去して使用）
+- `keywords`: 固有名詞（リスト形式 or 文字列。前後の空白を trim・重複を除去して使用）
 - `updated_at`: 最終更新日（なければ `created_at` を使用）
 - `created_at`: 作成日
+
+**日付のパース規則**:
+- フォーマット: `YYYY-MM-DD`（ISO 8601）
+- `updated_at` → `created_at` の順で有効な日付を優先
+- 両方とも欠落・不正フォーマットの場合: ソートで末尾（最古扱い）として扱い、`Info: {path} の日付が取得できないため末尾に配置します` を表示
+
+**tags / keywords の正規化ルール**:
+- 前後の空白を trim する（例: `" Nix "` → `"Nix"`）
+- 重複エントリを除去（大文字小文字は区別する）
+- リスト形式（`[a, b]`）と単一文字列の両方を受け付ける
 
 **エラーハンドリング**:
 - Front Matter がないファイル: スキップし警告を表示（例: `Warning: file.md には Front Matter がありません`）
@@ -79,6 +89,7 @@ Glob('<target_dir>/**/*.md')
 **プロジェクト一覧**:
 - 全ファイルを更新日降順でソート
 - `updated_at` がない場合は `created_at` で代替
+- 両方とも欠落・不正フォーマットの場合: 末尾（最古扱い）に配置
 - 同点の場合はファイルパス昇順
 
 **タグインデックス**:
@@ -93,7 +104,9 @@ Glob('<target_dir>/**/*.md')
 
 ### ステップ5: INDEX.md を生成
 
-Write ツールで INDEX.md を書き込む（既存ファイルは完全上書き）。
+**0件チェック**: ステップ3でスキップされなかったファイルが0件の場合、INDEX.md を生成せずにステップ6に進む。
+
+Write ツールで INDEX.md を書き込む（既存ファイルは完全上書き）。Write が失敗した場合（権限エラー等）はエラーメッセージを表示して処理を中止する（例: `Error: {path}/INDEX.md への書き込みに失敗しました。ディレクトリの書き込み権限を確認してください`）。
 
 **パス**: `<target_dir>/INDEX.md`
 
@@ -132,6 +145,7 @@ Write ツールで INDEX.md を書き込む（既存ファイルは完全上書�
 - 総ドキュメント数: {count}
 - 総タグ数: {unique_tag_count}
 - 総キーワード数: {unique_keyword_count}
+- スキップ: Front Matter なし {n1} 件 / YAML 不正 {n2} 件 / 日付不正 {n3} 件
 ```
 
 **相対パスの記法**:
@@ -143,6 +157,13 @@ Write ツールで INDEX.md を書き込む（既存ファイルは完全上書�
 
 以下の情報をユーザーに報告する：
 
+**0件の場合**:
+```
+対象ディレクトリに Front Matter 付きドキュメントが見つかりませんでした。INDEX.md は生成しません。
+スキャン: {total_scanned} 件 / スキップ: Front Matter なし {n1} 件 / YAML 不正 {n2} 件
+```
+
+**1件以上の場合**:
 ```
 INDEX.md を生成しました: <target_dir>/INDEX.md
 
@@ -150,7 +171,7 @@ INDEX.md を生成しました: <target_dir>/INDEX.md
 - 総ドキュメント数: {count}
 - 総タグ数: {tag_count}
 - 総キーワード数: {keyword_count}
-- スキップしたファイル数: {skip_count}（Front Matter なし）
+- スキップ: Front Matter なし {n1} 件 / YAML 不正 {n2} 件 / 日付不正 {n3} 件
 ```
 
 ## INDEX.md の例
@@ -206,12 +227,14 @@ INDEX.md を生成しました: <target_dir>/INDEX.md
 
 | 状況 | 対処 |
 |------|------|
-| Front Matter なし | スキップ + `Warning: {path} には Front Matter がありません` |
-| title なし | ファイル名をタイトルとして使用 + `Info: {path} の title がないため、ファイル名を使用します` |
+| Front Matter なし | スキップ（n1 カウント） + `Warning: {path} には Front Matter がありません` |
+| title なし | ファイル名（拡張子なし）をタイトルとして使用 + `Info: {path} の title がないため、ファイル名を使用します` |
 | tags なし | タグインデックスには含めない |
 | keywords なし | キーワードインデックスには含めない |
-| 不正な YAML | スキップ + `Warning: {path} の Front Matter が不正です` |
-| 対象ドキュメント0件 | INDEX.md を生成しない + `対象ディレクトリに Front Matter 付きドキュメントが見つかりませんでした` |
+| 不正な YAML | スキップ（n2 カウント） + `Warning: {path} の Front Matter が不正です` |
+| 日付欠落・不正フォーマット | 末尾（最古扱い）でソート（n3 カウント） + `Info: {path} の日付が取得できないため末尾に配置します` |
+| 対象ドキュメント0件（n1+n2件のみ） | INDEX.md を生成しない + スキャン結果を報告 |
+| Write 失敗 | 処理を中止 + `Error: {path}/INDEX.md への書き込みに失敗しました。ディレクトリの書き込み権限を確認してください` |
 
 ## チェックリスト
 
