@@ -6,6 +6,7 @@ description: >
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」
   といった質問に答えます。.steering/ ディレクトリ内の requirements.md, design.md, tasklist.md を
   YAML Front Matter と本文から効率的に検索します。
+tools: [Read, Grep, Glob]
 ---
 
 # Steering Research Agent
