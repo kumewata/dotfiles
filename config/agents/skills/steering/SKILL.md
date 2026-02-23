@@ -50,7 +50,91 @@ allowed-tools: Read, Write
    - `~/.claude/skills/steering/templates/design.md` → `.steering/[日付]-[機能名]/design.md`
    - `~/.claude/skills/steering/templates/tasklist.md` → `.steering/[日付]-[機能名]/tasklist.md`
 
-4. **tasklist.mdの詳細化**
+4. **YAML Front Matter の記入**
+
+   各ファイルの先頭には YAML Front Matter が含まれています。以下のフィールドを適切に記入してください。
+
+   ### 自動生成すべきフィールド（スキルが埋める）
+
+   - **title**: プロジェクト名から自動抽出（例: "Nix Flakes のマルチデバイス対応"）
+   - **related**: 固定値（同一プロジェクト内の3ファイル: requirements.md, design.md, tasklist.md）
+   - **status**: 初期値 `pending`（tasklist.md のみ）
+   - **completion**: 初期値 `0%`（tasklist.md のみ）
+
+   ### ユーザー入力が推奨されるフィールド（コンテキストから推測）
+
+   - **tags**: カテゴリ分類（3-8個）
+     - requirements.md: 常に "要件", "スコープ" を含み、ドメイン固有のタグを追加
+     - design.md: 常に "設計", "アーキテクチャ" を含み、技術スタック（例: "Nix", "コンポーネント設計"）を追加
+     - tasklist.md: 常に "実装", "タスク管理" を含み、フェーズ名（例: "Phase1", "テスト"）を追加
+
+   - **use_when**: **最重要フィールド**。このドキュメントを参照すべき状況を記述
+     - ユーザーが実際に質問しそうな言葉を使う
+     - 「〇〇のときに参照すべき」という明確な説明を含める
+     - テンプレートのデフォルト値を必要に応じてカスタマイズ
+
+   - **keywords**: プロジェクト固有の固有名詞（例: "Nix", "Home Manager", "aarch64-darwin", "StorageService"）
+     - API名、コンポーネント名、ライブラリ名、パターン名など
+     - 精密検索に使用されるため、正確な固有名詞を含める
+
+   ### Front Matter 記入例
+
+   **requirements.md**:
+   ```yaml
+   ---
+   title: Nix Flakes のマルチデバイス対応
+   tags: [要件, スコープ, Nix, マルチデバイス, 環境構築]
+   use_when: >
+     このドキュメントを参照すべき状況：
+     - Nix Flakes でマルチデバイス対応を実現したいとき
+     - ユーザー名の動的解決の要件を確認したいとき
+     - スコープの確認が必要なとき
+     - ビジネス価値や成功指標を理解したいとき
+   keywords: [Nix, Home Manager, builtins.getEnv, --impure, extraSpecialArgs]
+   related:
+     - design.md
+     - tasklist.md
+   ---
+   ```
+
+   **design.md**:
+   ```yaml
+   ---
+   title: extraSpecialArgs を使った username の動的渡し
+   tags: [設計, アーキテクチャ, Nix, Home Manager]
+   use_when: >
+     このドキュメントを参照すべき状況：
+     - Nix Flakes での username 解決方針を確認したいとき
+     - extraSpecialArgs の実装詳細が必要なとき
+     - エラーハンドリング戦略を確認したいとき
+     - テスト計画の詳細が必要なとき
+   keywords: [extraSpecialArgs, builtins.getEnv, username, homeConfigurations]
+   related:
+     - requirements.md
+     - tasklist.md
+   ---
+   ```
+
+   **tasklist.md**:
+   ```yaml
+   ---
+   title: Nix Flakes マルチデバイス対応 - 実装タスクリスト
+   tags: [実装, タスク管理, Phase1, Phase2]
+   use_when: >
+     このドキュメントを参照すべき状況：
+     - Nix Flakes マルチデバイス対応の実装進捗を確認したいとき
+     - 次に着手すべきタスクを確認したいとき
+     - プロジェクト全体のマイルストーンを把握したいとき
+   keywords: [Phase1, Phase2, extraSpecialArgs, flake.nix, home.nix]
+   related:
+     - requirements.md
+     - design.md
+   status: pending
+   completion: 0%
+   ---
+   ```
+
+5. **tasklist.mdの詳細化**
 
    requirements.mdとdesign.mdに基づいて、tasklist.mdを詳細化:
    - 各フェーズのタスクを具体的に記述

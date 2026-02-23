@@ -48,4 +48,8 @@ in
     # Codex が実行時に作成する .system/ ディレクトリを保護
     excludePatterns = [ "/.system" ];
   };
+
+  # エージェント定義のデプロイ（~/.claude/agents/）
+  home.file.".claude/agents/steering-research.md".source =
+    ../config/agents/definitions/steering-research.md;
 }
