@@ -23,6 +23,14 @@ commit, branch, rebase 等の Git 操作時に使用する。
 
 PR 作成・レビュー、Issue 管理等の GitHub 操作時に使用する。
 
+### codex-delegate（Codex によるレビュー）
+
+実装やドキュメント作成が完了した時点で、codex-delegate スキルを使い Codex CLI にレビューを依頼する。
+
+**以下のすべてに該当する場合のみ省略可**:
+- 変更対象が単一ファイルかつ自明な修正（typo、フォーマット等）
+- ユーザーがレビュー不要と明示した場合
+
 ## 推奨トリガー
 
 | Skill | Trigger |
@@ -38,4 +46,4 @@ PR 作成・レビュー、Issue 管理等の GitHub 操作時に使用する。
 以下のスキルは description に基づいて自動発動するため、明示的なトリガーは不要:
 
 terraform, terraform-test, terraform-style-guide, terraform-refactor-module,
-draw-io, bigquery, databricks, dbt, pdf, xlsx, codex-delegate
+draw-io, bigquery, databricks, dbt, pdf, xlsx
