@@ -23,8 +23,10 @@ nix flake update
 - `modules/` - Modular config split by concern:
   - `packages.nix` - CLI tools installed via Nix (ripgrep, fd, etc.)
   - `shell.nix` - Zsh config with Oh My Zsh, shell aliases, and `initExtra` scripts (mise, gcloud, Java, etc.)
-  - `agent-skills.nix` - [agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) を使い `config/agents/skills/` を `~/.claude/skills/` と `~/.codex/skills/` にデプロイ。`symlink-tree` 構造（rsync）で実ディレクトリとして配置。
+  - `agent-skills.nix` - [agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) を使い `config/agents/skills/` を `~/.claude/skills/` と `~/.codex/skills/` にデプロイ。`symlink-tree` 構造で配置。
 - `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。
+- `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件を定義。
+- `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions

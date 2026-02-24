@@ -54,4 +54,9 @@ in
     ../config/agents/definitions/steering-research.md;
   home.file.".claude/agents/doc-search.md".source =
     ../config/agents/definitions/doc-search.md;
+
+  # ルールのデプロイ（~/.claude/rules/）
+  # Rules は起動時に全て読み込まれ、スキルの発動トリガーとして機能する
+  home.file.".claude/rules/skill-triggers.md".source =
+    ../config/agents/rules/skill-triggers.md;
 }
