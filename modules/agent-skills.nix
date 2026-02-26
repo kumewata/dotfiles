@@ -59,4 +59,18 @@ in
   # Rules は起動時に全て読み込まれ、スキルの発動トリガーとして機能する
   home.file.".claude/rules/skill-triggers.md".source =
     ../config/agents/rules/skill-triggers.md;
+
+  # スクリプトのデプロイ（~/.claude/scripts/）
+  home.file.".claude/scripts/statusline.sh" = {
+    source = ../config/agents/scripts/statusline.sh;
+    executable = true;
+  };
+
+  # Claude Code グローバル設定（~/.claude/settings.json）
+  home.file.".claude/settings.json".text = builtins.toJSON {
+    statusLine = {
+      type = "command";
+      command = "~/.claude/scripts/statusline.sh";
+    };
+  };
 }
