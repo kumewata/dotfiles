@@ -12,6 +12,9 @@ keywords: [{フェーズ名}, {主要タスク名}]
 related:
   - requirements.md
   - design.md
+repos:
+  - {owner/repo}
+branch: {branch-name}
 status: pending
 completion: 0%
 created_at: {YYYY-MM-DD}

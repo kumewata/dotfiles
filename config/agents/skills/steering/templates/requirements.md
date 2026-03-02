@@ -11,6 +11,9 @@ keywords: [{固有名詞}, {API名}, {技術名}]
 related:
   - design.md
   - tasklist.md
+repos:
+  - {owner/repo}
+branch: {branch-name}
 created_at: {YYYY-MM-DD}
 updated_at: {YYYY-MM-DD}
 ---

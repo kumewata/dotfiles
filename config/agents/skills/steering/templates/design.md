@@ -12,6 +12,9 @@ keywords: [{コンポーネント名}, {パターン名}, {ライブラリ名}]
 related:
   - requirements.md
   - tasklist.md
+repos:
+  - {owner/repo}
+branch: {branch-name}
 created_at: {YYYY-MM-DD}
 updated_at: {YYYY-MM-DD}
 ---
