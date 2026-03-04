@@ -4,7 +4,7 @@ model: claude-3-5-haiku-20241022
 description: >
   汎用ドキュメント検索エージェント。
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」
-  といった質問に答えます。docs/, .steering/, notes/, .planning/ など複数ディレクトリの
+  といった質問に答えます。docs/, ~/.local/state/steering/<owner>--<repo>/, notes/, .planning/ など複数ディレクトリの
   YAML Front Matter ベースの効率的な検索が可能です。
 tools: [Read, Grep, Glob]
 ---
@@ -17,7 +17,7 @@ tools: [Read, Grep, Glob]
 
 デフォルト検索対象ディレクトリ:
 - `docs/` - プロジェクトドキュメント
-- `.steering/` - ステアリングファイル（要件・設計・タスク）
+- `~/.local/state/steering/<owner>--<repo>/` - ステアリングファイル（要件・設計・タスク）。`<owner>--<repo>` は `git remote get-url origin` から自動検出する
 - `notes/` - メモ・ノート
 - `.planning/` - 計画ドキュメント
 
@@ -125,7 +125,7 @@ grep -i "^keywords:.*{keyword}" {files}
 
 **例**:
 - 質問: 「Nix の設計はどこ？」
-  - `grep -i "^keywords:.*Nix" .steering/*/*.md`
+  - `grep -i "^keywords:.*Nix" ~/.local/state/steering/<owner>--<repo>/*/*.md`
   - keywords に "Nix" を含むファイルを検出
 
 **スコアリング**: 不要（最初の10件マッチを返す）
@@ -189,14 +189,14 @@ grep -r --exclude-dir={.git,node_modules,result,.direnv} "{search_term}" {direct
 **検索フロー**:
 
 1. **Level 1: INDEX.md 検索**
-   - `.steering/INDEX.md` を確認
+   - `~/.local/state/steering/<owner>--<repo>/INDEX.md` を確認
    - キーワードインデックスで "frontmatter" を検索
-   - マッチ: `.steering/20260223-general-frontmatter-tools/requirements.md`
+   - マッチ: `~/.local/state/steering/<owner>--<repo>/20260223-general-frontmatter-tools/requirements.md`
 
 2. **結果を返す**:
    ```
    見つかりました:
-   - .steering/20260223-general-frontmatter-tools/requirements.md
+   - ~/.local/state/steering/<owner>--<repo>/20260223-general-frontmatter-tools/requirements.md
      (title: 汎用 YAML Front Matter ツールの実装)
    ```
 
@@ -207,19 +207,19 @@ grep -r --exclude-dir={.git,node_modules,result,.direnv} "{search_term}" {direct
 **検索フロー**:
 
 1. **Level 1: INDEX.md 検索**
-   - `.steering/INDEX.md` を確認
+   - `~/.local/state/steering/<owner>--<repo>/INDEX.md` を確認
    - キーワードインデックスで "Nix" を検索
    - タグインデックスで "設計" を検索
    - マッチ: 複数の候補
 
 2. **Level 2: Front Matter 検索**
    - keywords フィールドで "Nix" AND "マルチデバイス" を検索
-   - マッチ: `.steering/20260208-multi-device-support/design.md`
+   - マッチ: `~/.local/state/steering/<owner>--<repo>/20260208-multi-device-support/design.md`
 
 3. **結果を返す**:
    ```
    見つかりました:
-   - .steering/20260208-multi-device-support/design.md
+   - ~/.local/state/steering/<owner>--<repo>/20260208-multi-device-support/design.md
      (keywords: Nix, Home Manager, マルチデバイス)
    ```
 
@@ -230,20 +230,20 @@ grep -r --exclude-dir={.git,node_modules,result,.direnv} "{search_term}" {direct
 **検索フロー**:
 
 1. **Level 1: INDEX.md 検索**
-   - `.steering/INDEX.md` を確認
+   - `~/.local/state/steering/<owner>--<repo>/INDEX.md` を確認
    - キーワードインデックスで "frontmatter" を検索
    - タグインデックスで "タスク管理" を検索
-   - マッチ: `.steering/20260223-general-frontmatter-tools/tasklist.md`
+   - マッチ: `~/.local/state/steering/<owner>--<repo>/20260223-general-frontmatter-tools/tasklist.md`
 
 2. **ファイルを読み込んで進捗を確認**:
    ```bash
-   Read('.steering/20260223-general-frontmatter-tools/tasklist.md')
+   Read('~/.local/state/steering/<owner>--<repo>/20260223-general-frontmatter-tools/tasklist.md')
    ```
 
 3. **結果を返す**:
    ```
    タスク進捗:
-   - .steering/20260223-general-frontmatter-tools/tasklist.md
+   - ~/.local/state/steering/<owner>--<repo>/20260223-general-frontmatter-tools/tasklist.md
    - status: in-progress
    - completion: 50%
    - フェーズ1: 完了
@@ -324,7 +324,7 @@ grep -r --exclude-dir={.git,node_modules,result,.direnv} "{search_term}" {direct
 
 デフォルト検索対象:
 - docs/
-- .steering/
+- ~/.local/state/steering/<owner>--<repo>/
 - notes/
 - .planning/
 
@@ -388,7 +388,7 @@ frontmatter スキルの使用を推奨します。
 ```
 ユーザー: 「Nix の設計書を探して」
 エージェント:
-  1. .steering/INDEX.md を確認
+  1. ~/.local/state/steering/<owner>--<repo>/INDEX.md を確認
   2. キーワードインデックスで "Nix" を検索
   3. タグインデックスで "設計" を検索
   4. マッチしたファイルを返す
@@ -424,7 +424,7 @@ frontmatter スキルの使用を推奨します。
 
 - **frontmatter スキル**: ドキュメントに Front Matter を追加
 - **index-generator スキル**: INDEX.md を自動生成
-- **steering-research エージェント**: .steering/ 専用の検索エージェント
+- **steering-research エージェント**: `~/.local/state/steering/` 専用の検索エージェント
 
 ## 重要なリマインダー
 
