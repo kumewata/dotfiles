@@ -92,31 +92,26 @@ in
     prefix_rule(pattern=["git", "config", "--get"], decision="allow")
     prefix_rule(pattern=["git", "config", "--list"], decision="allow")
 
-    # Nix
-    prefix_rule(pattern=["nix"], decision="allow")
-    prefix_rule(pattern=["nix-store"], decision="allow")
-
-    # GitHub CLI
-    prefix_rule(pattern=["gh"], decision="allow")
+    # GitHub CLI（read-only 系のみ）
+    prefix_rule(pattern=["gh", "pr", "view"], decision="allow")
+    prefix_rule(pattern=["gh", "run", "list"], decision="allow")
+    prefix_rule(pattern=["gh", "run", "view"], decision="allow")
+    prefix_rule(pattern=["gh", "issue", "view"], decision="allow")
 
     # Package managers（read / build / test）
     prefix_rule(pattern=["npm", "run"], decision="allow")
     prefix_rule(pattern=["npm", "test"], decision="allow")
-    prefix_rule(pattern=["npm", "install"], decision="allow")
     prefix_rule(pattern=["npm", "ci"], decision="allow")
     prefix_rule(pattern=["npm", "ls"], decision="allow")
     prefix_rule(pattern=["npm", "outdated"], decision="allow")
     prefix_rule(pattern=["npm", "info"], decision="allow")
     prefix_rule(pattern=["pnpm", "run"], decision="allow")
     prefix_rule(pattern=["pnpm", "test"], decision="allow")
-    prefix_rule(pattern=["pnpm", "install"], decision="allow")
     prefix_rule(pattern=["pnpm", "ls"], decision="allow")
     prefix_rule(pattern=["yarn", "run"], decision="allow")
     prefix_rule(pattern=["yarn", "test"], decision="allow")
-    prefix_rule(pattern=["yarn", "install"], decision="allow")
     prefix_rule(pattern=["bun", "run"], decision="allow")
     prefix_rule(pattern=["bun", "test"], decision="allow")
-    prefix_rule(pattern=["bun", "install"], decision="allow")
 
     # Build tools
     prefix_rule(pattern=["make"], decision="allow")
@@ -136,10 +131,7 @@ in
 
     # Runtime（バージョン確認・テスト等）
     prefix_rule(pattern=["node", "--version"], decision="allow")
-    prefix_rule(pattern=["node", "-e"], decision="allow")
-    prefix_rule(pattern=["node", "-p"], decision="allow")
     prefix_rule(pattern=["python", "--version"], decision="allow")
-    prefix_rule(pattern=["python", "-c"], decision="allow")
     prefix_rule(pattern=["python", "-m", "pytest"], decision="allow")
     prefix_rule(pattern=["python", "-m", "pip", "list"], decision="allow")
     prefix_rule(pattern=["mise"], decision="allow")
@@ -148,9 +140,6 @@ in
     prefix_rule(pattern=["ls"], decision="allow")
     prefix_rule(pattern=["pwd"], decision="allow")
     prefix_rule(pattern=["echo"], decision="allow")
-    prefix_rule(pattern=["cat"], decision="allow")
-    prefix_rule(pattern=["head"], decision="allow")
-    prefix_rule(pattern=["tail"], decision="allow")
     prefix_rule(pattern=["wc"], decision="allow")
     prefix_rule(pattern=["sort"], decision="allow")
     prefix_rule(pattern=["uniq"], decision="allow")
@@ -171,7 +160,6 @@ in
     prefix_rule(pattern=["stat"], decision="allow")
     prefix_rule(pattern=["which"], decision="allow")
     prefix_rule(pattern=["date"], decision="allow")
-    prefix_rule(pattern=["env"], decision="allow")
     prefix_rule(pattern=["printf"], decision="allow")
     prefix_rule(pattern=["basename"], decision="allow")
     prefix_rule(pattern=["dirname"], decision="allow")
@@ -183,9 +171,19 @@ in
     prefix_rule(pattern=["test"], decision="allow")
     prefix_rule(pattern=["["], decision="allow")
     prefix_rule(pattern=["chmod", "+x"], decision="allow")
-    prefix_rule(pattern=["codex"], decision="allow")
-
     # ── prompt: 確認が必要 ──
+
+    # Nix / GitHub CLI
+    prefix_rule(pattern=["nix"], decision="prompt")
+    prefix_rule(pattern=["nix-store"], decision="prompt")
+    prefix_rule(pattern=["gh"], decision="prompt")
+
+    # Package install / agent invocation
+    prefix_rule(pattern=["npm", "install"], decision="prompt")
+    prefix_rule(pattern=["pnpm", "install"], decision="prompt")
+    prefix_rule(pattern=["yarn", "install"], decision="prompt")
+    prefix_rule(pattern=["bun", "install"], decision="prompt")
+    prefix_rule(pattern=["codex"], decision="prompt")
 
     # リモート影響
     prefix_rule(pattern=["git", "push"], decision="prompt")
@@ -221,6 +219,12 @@ in
     prefix_rule(pattern=["diskutil", "erase"], decision="forbidden")
     prefix_rule(pattern=["shutdown"], decision="forbidden")
     prefix_rule(pattern=["reboot"], decision="forbidden")
+    # 外部送信系
+    prefix_rule(pattern=["curl"], decision="forbidden")
+    prefix_rule(pattern=["wget"], decision="forbidden")
+    prefix_rule(pattern=["nc"], decision="forbidden")
+    prefix_rule(pattern=["ncat"], decision="forbidden")
+    prefix_rule(pattern=["telnet"], decision="forbidden")
     # パーミッション破壊
     prefix_rule(pattern=["chmod", "777"], decision="forbidden")
     prefix_rule(pattern=["chmod", "-R", "777"], decision="forbidden")
@@ -249,7 +253,9 @@ in
       type = "command";
       command = "~/.claude/scripts/statusline.sh";
     };
+    enableAllProjectMcpServers = false;
     permissions = {
+      disableBypassPermissionsMode = "disable";
       # ── 自動許可 ──
       allow = [
         # Non-Bash tools
@@ -281,29 +287,25 @@ in
         "Bash(git shortlog*)"
         "Bash(git config --get*)"
         "Bash(git config --list*)"
-        # Nix
-        "Bash(nix *)"
-        "Bash(nix-store *)"
-        # GitHub CLI
-        "Bash(gh *)"
+        # GitHub CLI（read-only 系のみ）
+        "Bash(gh pr view*)"
+        "Bash(gh run list*)"
+        "Bash(gh run view*)"
+        "Bash(gh issue view*)"
         # Package managers（read / build / test）
         "Bash(npm run *)"
         "Bash(npm test*)"
-        "Bash(npm install*)"
         "Bash(npm ci*)"
         "Bash(npm ls*)"
         "Bash(npm outdated*)"
         "Bash(npm info*)"
         "Bash(pnpm run *)"
         "Bash(pnpm test*)"
-        "Bash(pnpm install*)"
         "Bash(pnpm ls*)"
         "Bash(yarn run *)"
         "Bash(yarn test*)"
-        "Bash(yarn install*)"
         "Bash(bun run *)"
         "Bash(bun test*)"
-        "Bash(bun install*)"
         # Build tools
         "Bash(make *)"
         "Bash(cargo build*)"
@@ -321,20 +323,15 @@ in
         "Bash(terraform state show*)"
         # Runtime（バージョン確認・テスト等のみ）
         "Bash(node --version*)"
-        "Bash(node -e *)"
-        "Bash(node -p *)"
         "Bash(python --version*)"
-        "Bash(python -c *)"
         "Bash(python -m pytest*)"
         "Bash(python -m pip list*)"
         "Bash(mise *)"
         # Shell utilities（読み取り・変換系）
+        # cat/head/tail は Read ツールで代替する
         "Bash(ls*)"
         "Bash(pwd)"
         "Bash(echo *)"
-        "Bash(cat *)"
-        "Bash(head *)"
-        "Bash(tail *)"
         "Bash(wc *)"
         "Bash(sort *)"
         "Bash(uniq *)"
@@ -355,7 +352,6 @@ in
         "Bash(stat *)"
         "Bash(which *)"
         "Bash(date*)"
-        "Bash(env *)"
         "Bash(printf *)"
         "Bash(basename *)"
         "Bash(dirname *)"
@@ -367,10 +363,19 @@ in
         "Bash(test *)"
         "Bash([ *)"
         "Bash(chmod +x *)"
-        "Bash(codex *)"
       ];
       # ── 確認が必要 ──
       ask = [
+        # Nix / GitHub CLI
+        "Bash(nix *)"
+        "Bash(nix-store *)"
+        "Bash(gh *)"
+        # Package install / agent invocation
+        "Bash(npm install*)"
+        "Bash(pnpm install*)"
+        "Bash(yarn install*)"
+        "Bash(bun install*)"
+        "Bash(codex *)"
         # リモート影響
         "Bash(git push*)"
         "Bash(npm publish*)"
@@ -406,6 +411,20 @@ in
         "Bash(diskutil erase*)"
         "Bash(shutdown *)"
         "Bash(reboot*)"
+        # 外部送信系
+        "Bash(curl *)"
+        "Bash(wget *)"
+        "Bash(nc *)"
+        "Bash(ncat *)"
+        "Bash(telnet *)"
+        # 機密パス
+        "Bash(* .env*)"
+        "Bash(* ~/.ssh/*)"
+        "Bash(* ~/.aws/*)"
+        "Bash(* ~/.config/gh/*)"
+        "Bash(* ~/.git-credentials)"
+        "Bash(* ~/.netrc)"
+        "Bash(* ~/.npmrc)"
         # パーミッション破壊
         "Bash(chmod 777 *)"
         "Bash(chmod -R 777 *)"
