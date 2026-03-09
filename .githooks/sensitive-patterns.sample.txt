@@ -1,0 +1,23 @@
+# Sample sensitive patterns for pre-commit hook.
+# Copy this file to .githooks/sensitive-patterns.txt and customize locally.
+# One Rust-regex-compatible pattern per line. Lines starting with # are comments.
+
+# --- Company names ---
+your-company-name
+# Add your org names as needed:
+# another-internal-name
+
+# --- Credentials & secrets ---
+\b(api[_-]?key|api[_-]?secret)\b\s*[=:]\s*["']?[A-Za-z0-9/+=]{16,}
+\b(access[_-]?token|auth[_-]?token)\b\s*[=:]\s*["']?[A-Za-z0-9/+=_.-]{16,}
+\bpassword\b\s*[=:]\s*["'][^"'[:space:]]{8,}
+
+# --- AWS ---
+AKIA[0-9A-Z]{16}
+
+# --- Private keys ---
+-----BEGIN\s+(RSA|EC|DSA|OPENSSH)\s+PRIVATE\s+KEY-----
+
+# --- Internal URLs (adjust to your org) ---
+# \.internal\.example\.com
+# vpn\.example\.com

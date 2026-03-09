@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# pre-commit hook: Detect company-specific or sensitive information in staged files.
+# Local patterns are defined in .githooks/sensitive-patterns.txt
+# (Rust regex, one per line, # for comments).
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+PATTERN_FILE="$REPO_ROOT/.githooks/sensitive-patterns.txt"
+SAMPLE_PATTERN_FILE="$REPO_ROOT/.githooks/sensitive-patterns.sample.txt"
+
+if [[ ! -f "$PATTERN_FILE" ]]; then
+  echo "Warning: $PATTERN_FILE not found, skipping sensitive info check."
+  if [[ -f "$SAMPLE_PATTERN_FILE" ]]; then
+    echo "Copy sample to initialize:"
+    echo "  cp .githooks/sensitive-patterns.sample.txt .githooks/sensitive-patterns.txt"
+  fi
+  exit 0
+fi
+
+# Build combined pattern from file (skip blank lines and comments)
+combined=""
+while IFS= read -r line; do
+  line="${line%%#*}"          # strip inline comments
+  line="${line#"${line%%[![:space:]]*}"}"  # trim leading whitespace
+  line="${line%"${line##*[![:space:]]}"}"  # trim trailing whitespace
+  [[ -z "$line" ]] && continue
+  if [[ -z "$combined" ]]; then
+    combined="$line"
+  else
+    combined="$combined|$line"
+  fi
+done < "$PATTERN_FILE"
+
+if [[ -z "$combined" ]]; then
+  exit 0
+fi
+
+# Resolve rg path: prefer Nix profile, then PATH
+RG=""
+for candidate in "$HOME/.nix-profile/bin/rg" "$(command -v rg 2>/dev/null || true)"; do
+  if [[ -n "$candidate" && -x "$candidate" ]]; then
+    RG="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$RG" ]]; then
+  echo "Warning: rg (ripgrep) not found, skipping sensitive info check."
+  exit 0
+fi
+
+# Check only staged (added/modified) files, skip the pattern file itself
+found=0
+while IFS= read -r file; do
+  [[ "$file" == ".githooks/sensitive-patterns.txt" ]] && continue
+  [[ "$file" == ".githooks/sensitive-patterns.sample.txt" ]] && continue
+
+  # Use git show to read the staged version, pipe to rg
+  if git show ":$file" 2>/dev/null | "$RG" -i -n "$combined" > /dev/null 2>&1; then
+    if [[ $found -eq 0 ]]; then
+      echo "=== Sensitive information detected in staged files ==="
+      echo ""
+      found=1
+    fi
+    echo "  $file:"
+    git show ":$file" | "$RG" -i -n "$combined" | head -5 | sed 's/^/    /'
+    echo ""
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+if [[ $found -ne 0 ]]; then
+  echo "Commit blocked. Review the matches above and either:"
+  echo "  1. Remove the sensitive content"
+  echo "  2. Add an exception in .githooks/sensitive-patterns.txt"
+  echo "  3. Bypass with: git commit --no-verify"
+  exit 1
+fi

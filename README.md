@@ -36,6 +36,18 @@ nix run github:nix-community/home-manager/release-25.11 -- switch --impure --fla
 
 適用後、ターミナルを再起動すると Zsh の設定やエイリアスが有効になる。
 
+### 4. pre-commit フックの初期化（推奨）
+
+このリポジトリには `.githooks/pre-commit` が含まれており、コミット前に機密情報パターンをチェックできる。  
+`sensitive-patterns.txt` はローカル専用のため、初回のみ sample から作成する。
+
+```bash
+git config core.hooksPath .githooks
+cp .githooks/sensitive-patterns.sample.txt .githooks/sensitive-patterns.txt
+```
+
+必要に応じて `.githooks/sensitive-patterns.txt` を編集して、組織固有のパターンを追加する。
+
 ## 日常の使い方
 
 ```bash
