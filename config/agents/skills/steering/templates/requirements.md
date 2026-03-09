@@ -8,6 +8,8 @@ use_when: >
   - スコープの確認が必要なとき
   - ビジネス価値や成功指標を理解したいとき
 keywords: [{固有名詞}, {API名}, {技術名}]
+references:
+  - "{関連する GitHub Issue/PR/Discussion の URL}"
 related:
   - design.md
   - tasklist.md
