@@ -26,7 +26,8 @@ codex exec -s read-only "<prompt>"
 
 **Optional flags:**
 - `-m <model>` - Override model (default: configured in `~/.codex/config.toml`)
-- `-C <path>` - Set working directory
+- `-C <path>` - Set working directory (must combine with `--skip-git-repo-check` if the target is outside a trusted git repo)
+- `--skip-git-repo-check` - Skip trusted git repository check. **Required** when reviewing files outside of a git repository (e.g., `~/.local/state/steering/`)
 
 ## Code Review
 
@@ -76,6 +77,12 @@ Run `codex exec` via the Bash tool. The final review output prints to stdout.
 
 ```
 codex exec -s read-only "<review prompt>"
+```
+
+**When reviewing files outside a git repo** (e.g., `~/.local/state/steering/`), add `--skip-git-repo-check`:
+
+```
+codex exec -s read-only --skip-git-repo-check -C /path/to/dir "<review prompt>"
 ```
 
 If the output is long, use `-o /tmp/codex-review.txt` and read the file afterward.
