@@ -102,5 +102,6 @@
 
     # その他の aliases
     pn = "pnpm";
+    mdp = "cmux markdown open";
   };
 }
