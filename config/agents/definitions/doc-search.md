@@ -1,6 +1,6 @@
 ---
 name: doc-search
-model: claude-3-5-haiku-20241022
+model: haiku
 description: >
   汎用ドキュメント検索エージェント。
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」

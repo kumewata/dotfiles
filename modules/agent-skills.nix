@@ -256,6 +256,9 @@ in
     enableAllProjectMcpServers = false;
     permissions = {
       disableBypassPermissionsMode = "disable";
+      additionalDirectories = [
+        "~/.local/state/steering"
+      ];
       # ── 自動許可 ──
       allow = [
         # Non-Bash tools

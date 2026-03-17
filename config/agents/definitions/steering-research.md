@@ -1,6 +1,6 @@
 ---
 name: steering-research
-model: claude-3-5-haiku-20241022
+model: haiku
 description: >
   steering プロジェクト専用のリサーチエージェント。
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」
