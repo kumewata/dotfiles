@@ -74,7 +74,13 @@ After the agent completes, create a handoff document:
 [Suggested next steps]
 ```
 
-### 4c. Pass to next agent
+### 4c. Update steering tasklist
+Each agent completes a phase of work. **必ず** steering の tasklist.md を更新する:
+- 完了したタスクを `[x]` に更新
+- 新たに発見されたタスクがあれば追加
+- completion % を更新
+
+### 4d. Pass to next agent
 Include the handoff document in the next agent's prompt.
 
 ## Step 5: Codex Cross-Model Review
@@ -160,6 +166,16 @@ Generate the final report:
 
 [Rationale for recommendation based on aggregate findings]
 ```
+
+## Step 7: Steering Finalization
+
+**最終レポート出力後、必ず steering ドキュメントを更新する。**
+
+1. **tasklist.md**: 全タスクの完了状態を確認。未完了タスクがあれば理由を記載。status を `completed` に、completion を `100%` に更新
+2. **振り返りセクション**: 実装完了日、計画と実績の差分、学んだこと、後続タスク、改善提案を記入
+3. **requirements.md**: 受け入れ条件のチェックボックスを更新
+
+これを忘れると、次回の steering 検索で進捗が不明になる。
 
 ## Coordination Rules
 
