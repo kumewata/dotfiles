@@ -38,3 +38,17 @@ nix flake update
 - All package references use `pkgs.<name>` from nixpkgs unstable.
 - The flake uses `builtins.getEnv "USER"` with `--impure` to dynamically resolve the username. No per-device edits needed.
 - `extraSpecialArgs` passes `username` と `inputs` to all modules.
+
+## Adding Agents / Commands
+
+エージェント定義やコマンドの追加は2ステップ:
+
+**エージェント定義** (`config/agents/definitions/<name>.md`):
+1. ファイル作成。frontmatter: `name`, `description`, `tools`, `model`
+2. `modules/agent-skills.nix` の `agentDefinitions` リストに名前を追加
+
+**コマンド** (`config/agents/commands/<name>.md`):
+1. ファイル作成。frontmatter: `description` のみ
+2. `modules/agent-skills.nix` の `agentCommands` リストに名前を追加
+
+`mkAgentEntries` ヘルパーにより `~/.claude/agents/`・`~/.claude/commands/` に自動デプロイされる。追加後 `hms` で適用。
