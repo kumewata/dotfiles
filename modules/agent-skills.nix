@@ -12,6 +12,36 @@ let
     if pkgs.stdenv.isDarwin
     then "/Users/${username}"
     else "/home/${username}";
+
+  # エージェント関連ファイルのベースパス
+  agentBasePath = ../config/agents;
+
+  # デプロイ対象のエージェント定義（config/agents/definitions/ 配下）
+  agentDefinitions = [
+    "architect"
+    "code-reviewer"
+    "doc-search"
+    "doc-updater"
+    "planner"
+    "python-reviewer"
+    "security-reviewer"
+    "steering-research"
+    "tdd-guide"
+    "terraform-reviewer"
+  ];
+
+  # デプロイ対象のコマンド（config/agents/commands/ 配下）
+  agentCommands = [
+    "orchestrate"
+  ];
+
+  # 名前リストから home.file エントリを生成するヘルパー
+  # パス型を維持するために basePath + 文字列結合を使用
+  mkAgentEntries = names: destDir: srcDir:
+    builtins.listToAttrs (map (name: {
+      name = ".claude/${destDir}/${name}.md";
+      value = { source = agentBasePath + "/${srcDir}/${name}.md"; };
+    }) names);
 in
 {
   imports = [
@@ -49,46 +79,21 @@ in
     excludePatterns = [ "/.system" ];
   };
 
-  # エージェント定義のデプロイ（~/.claude/agents/）
-  home.file.".claude/agents/steering-research.md".source =
-    ../config/agents/definitions/steering-research.md;
-  home.file.".claude/agents/doc-search.md".source =
-    ../config/agents/definitions/doc-search.md;
-  home.file.".claude/agents/planner.md".source =
-    ../config/agents/definitions/planner.md;
-  home.file.".claude/agents/architect.md".source =
-    ../config/agents/definitions/architect.md;
-  home.file.".claude/agents/code-reviewer.md".source =
-    ../config/agents/definitions/code-reviewer.md;
-  home.file.".claude/agents/tdd-guide.md".source =
-    ../config/agents/definitions/tdd-guide.md;
-  home.file.".claude/agents/security-reviewer.md".source =
-    ../config/agents/definitions/security-reviewer.md;
-  home.file.".claude/agents/doc-updater.md".source =
-    ../config/agents/definitions/doc-updater.md;
-  home.file.".claude/agents/python-reviewer.md".source =
-    ../config/agents/definitions/python-reviewer.md;
-  home.file.".claude/agents/terraform-reviewer.md".source =
-    ../config/agents/definitions/terraform-reviewer.md;
-
-  # コマンドのデプロイ（~/.claude/commands/）
-  home.file.".claude/commands/orchestrate.md".source =
-    ../config/agents/commands/orchestrate.md;
-
-  # ルールのデプロイ（~/.claude/rules/）
-  # Rules は起動時に全て読み込まれ、スキルの発動トリガーとして機能する
-  home.file.".claude/rules/skill-triggers.md".source =
-    ../config/agents/rules/skill-triggers.md;
-
-  # スクリプトのデプロイ（~/.claude/scripts/）
-  home.file.".claude/scripts/statusline.sh" = {
-    source = ../config/agents/scripts/statusline.sh;
-    executable = true;
-  };
-
-  # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
-  # default.rules はセッション中に自動追記されるため別ファイルで管理
-  home.file.".codex/rules/nix-managed.rules".text = ''
+  # エージェント定義・コマンド・ルール・スクリプトのデプロイ
+  home.file = (mkAgentEntries agentDefinitions "agents" "definitions")
+           // (mkAgentEntries agentCommands "commands" "commands") # srcDir = destDir: config/agents/commands/ → .claude/commands/
+           // {
+    # ルール（起動時に全て読み込まれ、スキルの発動トリガーとして機能する）
+    ".claude/rules/skill-triggers.md".source =
+      ../config/agents/rules/skill-triggers.md;
+    # スクリプト（executable 属性が必要なため個別定義）
+    ".claude/scripts/statusline.sh" = {
+      source = ../config/agents/scripts/statusline.sh;
+      executable = true;
+    };
+    # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
+    # default.rules はセッション中に自動追記されるため別ファイルで管理
+    ".codex/rules/nix-managed.rules".text = ''
     # ── allow: 自動許可 ──
 
     # Git（安全なサブコマンド）
@@ -289,10 +294,9 @@ in
     prefix_rule(pattern=["git", "reflog", "expire"], decision="forbidden")
     prefix_rule(pattern=["git", "restore", "."], decision="forbidden")
     prefix_rule(pattern=["git", "restore", "--worktree", "."], decision="forbidden")
-  '';
-
-  # Claude Code グローバル設定（~/.claude/settings.json）
-  home.file.".claude/settings.json".text = builtins.toJSON {
+    '';
+    # Claude Code グローバル設定（~/.claude/settings.json）
+    ".claude/settings.json".text = builtins.toJSON {
     statusLine = {
       type = "command";
       command = "~/.claude/scripts/statusline.sh";
@@ -527,5 +531,6 @@ in
         "Bash(git restore --worktree .)"
       ];
     };
-  };
+  };  # end of builtins.toJSON (settings.json)
+  };  # end of home.file
 }
