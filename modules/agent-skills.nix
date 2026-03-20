@@ -12,6 +12,36 @@ let
     if pkgs.stdenv.isDarwin
     then "/Users/${username}"
     else "/home/${username}";
+
+  # エージェント関連ファイルのベースパス
+  agentBasePath = ../config/agents;
+
+  # デプロイ対象のエージェント定義（config/agents/definitions/ 配下）
+  agentDefinitions = [
+    "architect"
+    "code-reviewer"
+    "doc-search"
+    "doc-updater"
+    "planner"
+    "python-reviewer"
+    "security-reviewer"
+    "steering-research"
+    "tdd-guide"
+    "terraform-reviewer"
+  ];
+
+  # デプロイ対象のコマンド（config/agents/commands/ 配下）
+  agentCommands = [
+    "orchestrate"
+  ];
+
+  # 名前リストから home.file エントリを生成するヘルパー
+  # パス型を維持するために basePath + 文字列結合を使用
+  mkAgentEntries = names: destDir: srcDir:
+    builtins.listToAttrs (map (name: {
+      name = ".claude/${destDir}/${name}.md";
+      value = { source = agentBasePath + "/${srcDir}/${name}.md"; };
+    }) names);
 in
 {
   imports = [
@@ -49,26 +79,21 @@ in
     excludePatterns = [ "/.system" ];
   };
 
-  # エージェント定義のデプロイ（~/.claude/agents/）
-  home.file.".claude/agents/steering-research.md".source =
-    ../config/agents/definitions/steering-research.md;
-  home.file.".claude/agents/doc-search.md".source =
-    ../config/agents/definitions/doc-search.md;
-
-  # ルールのデプロイ（~/.claude/rules/）
-  # Rules は起動時に全て読み込まれ、スキルの発動トリガーとして機能する
-  home.file.".claude/rules/skill-triggers.md".source =
-    ../config/agents/rules/skill-triggers.md;
-
-  # スクリプトのデプロイ（~/.claude/scripts/）
-  home.file.".claude/scripts/statusline.sh" = {
-    source = ../config/agents/scripts/statusline.sh;
-    executable = true;
-  };
-
-  # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
-  # default.rules はセッション中に自動追記されるため別ファイルで管理
-  home.file.".codex/rules/nix-managed.rules".text = ''
+  # エージェント定義・コマンド・ルール・スクリプトのデプロイ
+  home.file = (mkAgentEntries agentDefinitions "agents" "definitions")
+           // (mkAgentEntries agentCommands "commands" "commands") # srcDir = destDir: config/agents/commands/ → .claude/commands/
+           // {
+    # ルール（起動時に全て読み込まれ、スキルの発動トリガーとして機能する）
+    ".claude/rules/skill-triggers.md".source =
+      ../config/agents/rules/skill-triggers.md;
+    # スクリプト（executable 属性が必要なため個別定義）
+    ".claude/scripts/statusline.sh" = {
+      source = ../config/agents/scripts/statusline.sh;
+      executable = true;
+    };
+    # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
+    # default.rules はセッション中に自動追記されるため別ファイルで管理
+    ".codex/rules/nix-managed.rules".text = ''
     # ── allow: 自動許可 ──
 
     # Git（安全なサブコマンド）
@@ -113,8 +138,11 @@ in
     prefix_rule(pattern=["bun", "run"], decision="allow")
     prefix_rule(pattern=["bun", "test"], decision="allow")
 
-    # Build tools
-    prefix_rule(pattern=["make"], decision="allow")
+    # Build tools（safe targets のみ）
+    prefix_rule(pattern=["make", "test"], decision="allow")
+    prefix_rule(pattern=["make", "build"], decision="allow")
+    prefix_rule(pattern=["make", "check"], decision="allow")
+    # make clean は prompt（ファイル削除を伴うため）
     prefix_rule(pattern=["cargo", "build"], decision="allow")
     prefix_rule(pattern=["cargo", "test"], decision="allow")
     prefix_rule(pattern=["cargo", "check"], decision="allow")
@@ -151,8 +179,7 @@ in
     prefix_rule(pattern=["grep"], decision="allow")
     prefix_rule(pattern=["rg"], decision="allow")
     prefix_rule(pattern=["fd"], decision="allow")
-    prefix_rule(pattern=["sed"], decision="allow")
-    prefix_rule(pattern=["awk"], decision="allow")
+    # sed, awk は prompt に移動（F-01: ファイル変更プリミティブを持つ）
     prefix_rule(pattern=["jq"], decision="allow")
     prefix_rule(pattern=["yq"], decision="allow")
     prefix_rule(pattern=["diff"], decision="allow")
@@ -164,13 +191,12 @@ in
     prefix_rule(pattern=["basename"], decision="allow")
     prefix_rule(pattern=["dirname"], decision="allow")
     prefix_rule(pattern=["realpath"], decision="allow")
-    prefix_rule(pattern=["xargs"], decision="allow")
-    prefix_rule(pattern=["tee"], decision="allow")
+    # xargs, tee は prompt に移動（F-02/F-03: コマンド増幅・ファイル書き込み）
     prefix_rule(pattern=["true"], decision="allow")
     prefix_rule(pattern=["false"], decision="allow")
     prefix_rule(pattern=["test"], decision="allow")
     prefix_rule(pattern=["["], decision="allow")
-    prefix_rule(pattern=["chmod", "+x"], decision="allow")
+    # chmod +x は prompt に移動（F-NEW-05: chmod の ask バイパス防止）
     # ── prompt: 確認が必要 ──
 
     # Nix / GitHub CLI
@@ -202,6 +228,13 @@ in
     prefix_rule(pattern=["terraform", "apply"], decision="prompt")
     prefix_rule(pattern=["terraform", "destroy"], decision="prompt")
     prefix_rule(pattern=["terraform", "import"], decision="prompt")
+    # ファイル変更・コマンド増幅（F-01/F-02/F-03）
+    prefix_rule(pattern=["sed"], decision="prompt")
+    prefix_rule(pattern=["awk"], decision="prompt")
+    prefix_rule(pattern=["xargs"], decision="prompt")
+    prefix_rule(pattern=["tee"], decision="prompt")
+    # ビルドツール汎用（F-NEW-03）
+    prefix_rule(pattern=["make"], decision="prompt")
     # 汎用 runtime 実行
     prefix_rule(pattern=["node"], decision="prompt")
     prefix_rule(pattern=["python"], decision="prompt")
@@ -219,12 +252,28 @@ in
     prefix_rule(pattern=["diskutil", "erase"], decision="forbidden")
     prefix_rule(pattern=["shutdown"], decision="forbidden")
     prefix_rule(pattern=["reboot"], decision="forbidden")
+    # シェルインタプリタ（F-10: 任意コード実行バイパス防止）
+    # bare invocation（bash script.sh 等）も含めて全てブロック
+    prefix_rule(pattern=["bash"], decision="forbidden")
+    prefix_rule(pattern=["sh"], decision="forbidden")
+    prefix_rule(pattern=["zsh"], decision="forbidden")
+    prefix_rule(pattern=["dash"], decision="forbidden")
+    prefix_rule(pattern=["eval"], decision="forbidden")
+    prefix_rule(pattern=["exec"], decision="forbidden")
+    # source はシェルビルトインのため top-level 呼び出しのみブロック（スクリプト内部の source は対象外）
+    prefix_rule(pattern=["source"], decision="forbidden")
     # 外部送信系
     prefix_rule(pattern=["curl"], decision="forbidden")
     prefix_rule(pattern=["wget"], decision="forbidden")
     prefix_rule(pattern=["nc"], decision="forbidden")
     prefix_rule(pattern=["ncat"], decision="forbidden")
     prefix_rule(pattern=["telnet"], decision="forbidden")
+    # ファイル転送（F-13: データ漏洩防止）
+    prefix_rule(pattern=["scp"], decision="forbidden")
+    prefix_rule(pattern=["rsync"], decision="forbidden")
+    prefix_rule(pattern=["sftp"], decision="forbidden")
+    prefix_rule(pattern=["ftp"], decision="forbidden")
+    prefix_rule(pattern=["ssh"], decision="forbidden")
     # パーミッション破壊
     prefix_rule(pattern=["chmod", "777"], decision="forbidden")
     prefix_rule(pattern=["chmod", "-R", "777"], decision="forbidden")
@@ -245,10 +294,9 @@ in
     prefix_rule(pattern=["git", "reflog", "expire"], decision="forbidden")
     prefix_rule(pattern=["git", "restore", "."], decision="forbidden")
     prefix_rule(pattern=["git", "restore", "--worktree", "."], decision="forbidden")
-  '';
-
-  # Claude Code グローバル設定（~/.claude/settings.json）
-  home.file.".claude/settings.json".text = builtins.toJSON {
+    '';
+    # Claude Code グローバル設定（~/.claude/settings.json）
+    ".claude/settings.json".text = builtins.toJSON {
     statusLine = {
       type = "command";
       command = "~/.claude/scripts/statusline.sh";
@@ -309,8 +357,11 @@ in
         "Bash(yarn test*)"
         "Bash(bun run *)"
         "Bash(bun test*)"
-        # Build tools
-        "Bash(make *)"
+        # Build tools（safe targets のみ）
+        "Bash(make test*)"
+        "Bash(make build*)"
+        "Bash(make check*)"
+        # make clean は ask（ファイル削除を伴うため）
         "Bash(cargo build*)"
         "Bash(cargo test*)"
         "Bash(cargo check*)"
@@ -346,8 +397,7 @@ in
         "Bash(grep *)"
         "Bash(rg *)"
         "Bash(fd *)"
-        "Bash(sed *)"
-        "Bash(awk *)"
+        # sed, awk は ask に移動（F-01）
         "Bash(jq *)"
         "Bash(yq *)"
         "Bash(diff *)"
@@ -359,13 +409,12 @@ in
         "Bash(basename *)"
         "Bash(dirname *)"
         "Bash(realpath *)"
-        "Bash(xargs *)"
-        "Bash(tee *)"
+        # xargs, tee は ask に移動（F-02/F-03）
         "Bash(true*)"
         "Bash(false*)"
         "Bash(test *)"
         "Bash([ *)"
-        "Bash(chmod +x *)"
+        # chmod +x は ask に移動（F-NEW-05）
       ];
       # ── 確認が必要 ──
       ask = [
@@ -396,6 +445,14 @@ in
         "Bash(terraform apply*)"
         "Bash(terraform destroy*)"
         "Bash(terraform import*)"
+        # ファイル変更・コマンド増幅（F-01/F-02/F-03）
+        "Bash(sed *)"
+        "Bash(awk *)"
+        "Bash(xargs *)"
+        "Bash(tee *)"
+        # ビルドツール汎用（F-NEW-03: bare make 含む）
+        "Bash(make *)"
+        "Bash(make)"
         # 汎用 runtime 実行
         "Bash(node *)"
         "Bash(python *)"
@@ -414,12 +471,34 @@ in
         "Bash(diskutil erase*)"
         "Bash(shutdown *)"
         "Bash(reboot*)"
+        # シェルインタプリタ（F-10: 任意コード実行バイパス防止）
+        # bare invocation（bash 単体）も含めて全てブロック
+        "Bash(bash*)"
+        "Bash(sh *)"
+        "Bash(sh)"
+        "Bash(zsh*)"
+        "Bash(dash*)"
+        "Bash(eval *)"
+        "Bash(exec *)"
+        # source はシェルビルトインのため top-level 呼び出しのみブロック
+        "Bash(source *)"
         # 外部送信系
         "Bash(curl *)"
         "Bash(wget *)"
         "Bash(nc *)"
         "Bash(ncat *)"
         "Bash(telnet *)"
+        # ファイル転送（F-13: データ漏洩防止）
+        "Bash(scp *)"
+        "Bash(scp)"
+        "Bash(rsync *)"
+        "Bash(rsync)"
+        "Bash(sftp *)"
+        "Bash(sftp)"
+        "Bash(ftp *)"
+        "Bash(ftp)"
+        "Bash(ssh *)"
+        "Bash(ssh)"
         # 機密パス
         "Bash(* .env*)"
         "Bash(* ~/.ssh/*)"
@@ -452,5 +531,6 @@ in
         "Bash(git restore --worktree .)"
       ];
     };
-  };
+  };  # end of builtins.toJSON (settings.json)
+  };  # end of home.file
 }
