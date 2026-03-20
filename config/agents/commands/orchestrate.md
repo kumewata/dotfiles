@@ -31,12 +31,15 @@ If `--with` agents are specified, insert them before `codex-review`.
 Example: `/orchestrate feature --with python-reviewer "Build a REST API"` becomes:
 `planner → tdd-guide → code-reviewer → security-reviewer → python-reviewer → codex-review`
 
-## Step 3: Steering Integration
+## Step 3: Steering Integration (必須)
+
+**orchestrate は常に steering ドキュメントを作成する。** orchestrate を使う時点で一定の複雑さがあるタスクであり、計画・進捗管理は省略しない。
 
 Before invoking the first agent:
 
 1. Load the **steering** skill using the Skill tool
 2. Follow steering's Mode 1 (document creation) to create the steering directory and documents
+   - 軽量モード判定は行わない — orchestrate では常に通常モード（requirements.md, design.md, tasklist.md の3ファイル）を使用する
 3. The planner agent will generate/update `requirements.md`, `design.md`, and `tasklist.md` in the steering directory
 
 ## Step 4: Execute Agent Pipeline
