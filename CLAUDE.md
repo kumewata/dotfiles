@@ -26,7 +26,8 @@ nix flake update
   - `agent-skills.nix` - [agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) を使い `config/agents/skills/` を `~/.claude/skills/` と `~/.codex/skills/` にデプロイ。`symlink-tree` 構造で配置。
 - `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。
 - `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件を定義。
-- `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。
+- `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）を含む。
+- `config/agents/commands/` - Claude Code のカスタムコマンド。`~/.claude/commands/` にデプロイ。`/orchestrate` コマンドで複数エージェントの sequential pipeline を実行。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions

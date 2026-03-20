@@ -54,6 +54,26 @@ in
     ../config/agents/definitions/steering-research.md;
   home.file.".claude/agents/doc-search.md".source =
     ../config/agents/definitions/doc-search.md;
+  home.file.".claude/agents/planner.md".source =
+    ../config/agents/definitions/planner.md;
+  home.file.".claude/agents/architect.md".source =
+    ../config/agents/definitions/architect.md;
+  home.file.".claude/agents/code-reviewer.md".source =
+    ../config/agents/definitions/code-reviewer.md;
+  home.file.".claude/agents/tdd-guide.md".source =
+    ../config/agents/definitions/tdd-guide.md;
+  home.file.".claude/agents/security-reviewer.md".source =
+    ../config/agents/definitions/security-reviewer.md;
+  home.file.".claude/agents/doc-updater.md".source =
+    ../config/agents/definitions/doc-updater.md;
+  home.file.".claude/agents/python-reviewer.md".source =
+    ../config/agents/definitions/python-reviewer.md;
+  home.file.".claude/agents/terraform-reviewer.md".source =
+    ../config/agents/definitions/terraform-reviewer.md;
+
+  # コマンドのデプロイ（~/.claude/commands/）
+  home.file.".claude/commands/orchestrate.md".source =
+    ../config/agents/commands/orchestrate.md;
 
   # ルールのデプロイ（~/.claude/rules/）
   # Rules は起動時に全て読み込まれ、スキルの発動トリガーとして機能する
