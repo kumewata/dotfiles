@@ -28,8 +28,8 @@ log() { echo "[$(date '+%H:%M:%S')] $*" >&2; }
 
 # ── Guards ─────────────────────────────────────────────────────
 
-# Only run on Linux (Claude Code Web runs on Linux; macOS users use `hms` directly)
-if [ "$(uname -s)" != "Linux" ]; then
+# Only run in Claude Code Web (macOS users use `hms` directly)
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
