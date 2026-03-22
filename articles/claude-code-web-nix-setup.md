@@ -191,8 +191,8 @@ export_env() {
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       # --impure で実行時のシステムを検出（デフォルトは aarch64-darwin）
-      system = builtins.getEnv "NIX_SYSTEM"
-        |> (s: if s == "" then "aarch64-darwin" else s);
+      nixSystem = builtins.getEnv "NIX_SYSTEM";
+      system = if nixSystem == "" then "aarch64-darwin" else nixSystem;
       pkgs = nixpkgs.legacyPackages.${system};
 
       mkHome = home-manager.lib.homeManagerConfiguration {
@@ -248,8 +248,8 @@ export_env() {
 `system` の決定ロジックに `NIX_SYSTEM` 環境変数によるオーバーライドを追加します:
 
 ```nix
-system = builtins.getEnv "NIX_SYSTEM"
-  |> (s: if s == "" then "aarch64-darwin" else s);  # デフォルトを自分の環境に合わせる
+nixSystem = builtins.getEnv "NIX_SYSTEM";
+system = if nixSystem == "" then "aarch64-darwin" else nixSystem;  # デフォルトを自分の環境に合わせる
 ```
 
 ### Step 2: home.nix に Linux 対応の homeDirectory 分岐を追加
