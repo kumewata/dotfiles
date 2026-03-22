@@ -21,11 +21,12 @@
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
-      system = "aarch64-darwin"; # Apple Silicon Mac
+      # --impure で実行時のシステムを検出（デフォルトは aarch64-darwin）
+      system = builtins.getEnv "NIX_SYSTEM"
+        |> (s: if s == "" then "aarch64-darwin" else s);
       pkgs = nixpkgs.legacyPackages.${system};
 
-    in {
-      homeConfigurations."kumewataru" = home-manager.lib.homeManagerConfiguration {
+      mkHome = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
         # 実行時のユーザー名を取得（--impure フラグが必要、遅延評価される）
@@ -38,7 +39,10 @@
         modules = [ ./home.nix ];
       };
 
+    in {
+      homeConfigurations."kumewataru" = mkHome;
+
       # 互換性のためのエイリアス
-      homeConfigurations."default" = self.homeConfigurations."kumewataru";
+      homeConfigurations."default" = mkHome;
     };
 }

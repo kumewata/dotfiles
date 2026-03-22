@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# setup-without-nix.sh — Nix/Home Manager なしで Claude Code / Codex の設定をデプロイ
-# agent-skills.nix 相当のシンボリックリンク・ファイル配置を行う
+# setup.sh — Claude Code / Codex エージェント設定のデプロイスクリプト
+#
+# 動作:
+#   1. CLI ツール (gh, codex) をインストール
+#   2. Nix のインストールを試行
+#   3. Nix が使える場合 → home-manager switch で正式デプロイ
+#   4. Nix が使えない場合 → シンボリックリンクでフォールバックデプロイ
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,7 +23,9 @@ fi
 echo "==> Deploying agent configs from ${DOTFILES_DIR}"
 echo "    Home: ${HOME_DIR}"
 
-# ── CLI ツールのインストール ──
+# ════════════════════════════════════════════════════════════════
+# Phase 1: CLI ツールのインストール
+# ════════════════════════════════════════════════════════════════
 
 # GitHub CLI (gh)
 if ! command -v gh &>/dev/null; then
@@ -28,7 +35,7 @@ if ! command -v gh &>/dev/null; then
   case "$ARCH" in
     x86_64)  GH_ARCH="linux_amd64" ;;
     aarch64) GH_ARCH="linux_arm64" ;;
-    arm64)   GH_ARCH="macOS_arm64" ;;  # macOS Apple Silicon
+    arm64)   GH_ARCH="macOS_arm64" ;;
     *)       echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"; GH_ARCH="" ;;
   esac
   if [[ -n "${GH_ARCH:-}" ]]; then
@@ -36,7 +43,6 @@ if ! command -v gh &>/dev/null; then
     TMP_GH="$(mktemp -d)"
     if curl -fsSL "$GH_URL" -o "${TMP_GH}/gh.tar.gz" 2>/dev/null; then
       tar -xzf "${TMP_GH}/gh.tar.gz" -C "$TMP_GH"
-      # Install to /usr/local/bin if writable, else ~/bin
       if [[ -w /usr/local/bin ]]; then
         cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" /usr/local/bin/gh
         echo "    Installed gh ${GH_VERSION} to /usr/local/bin/gh"
@@ -71,7 +77,94 @@ else
   echo "==> WARN: npm not found, skipping codex CLI install"
 fi
 
-# ── ディレクトリ作成 ──
+# ════════════════════════════════════════════════════════════════
+# Phase 2: Nix インストール試行
+# ════════════════════════════════════════════════════════════════
+
+NIX_INSTALLED=false
+
+if command -v nix &>/dev/null; then
+  echo "==> Nix already installed: $(nix --version)"
+  NIX_INSTALLED=true
+else
+  echo "==> Attempting to install Nix..."
+
+  NIX_VERSION="2.28.3"
+  ARCH="$(uname -m)"
+  SYSTEM="${ARCH}-$(uname -s | tr '[:upper:]' '[:lower:]')"
+
+  NIX_URL="https://releases.nixos.org/nix/nix-${NIX_VERSION}/nix-${NIX_VERSION}-${SYSTEM}.tar.xz"
+  TMP_NIX="$(mktemp -d)"
+
+  if curl -fsSL --max-time 30 "$NIX_URL" -o "${TMP_NIX}/nix.tar.xz" 2>/dev/null; then
+    echo "    Downloaded Nix ${NIX_VERSION}"
+    tar -xJf "${TMP_NIX}/nix.tar.xz" -C "$TMP_NIX"
+
+    # root でのインストール準備
+    if [[ "$(whoami)" == "root" ]]; then
+      groupadd -f nixbld 2>/dev/null || true
+      useradd -r -g nixbld -d /var/empty -s /sbin/nologin nixbld1 2>/dev/null || true
+      mkdir -p "${HOME_DIR}/.config/nix"
+      cat > "${HOME_DIR}/.config/nix/nix.conf" << 'NIXCONF'
+build-users-group =
+experimental-features = nix-command flakes pipe-operators
+NIXCONF
+    fi
+
+    if "${TMP_NIX}/nix-${NIX_VERSION}-${SYSTEM}/install" --no-daemon 2>&1 | tail -5; then
+      export PATH="${HOME_DIR}/.nix-profile/bin:$PATH"
+      if command -v nix &>/dev/null; then
+        echo "    Nix installed: $(nix --version)"
+        NIX_INSTALLED=true
+        # 非 root の場合も experimental-features を有効化
+        if [[ "$(whoami)" != "root" ]]; then
+          mkdir -p "${HOME_DIR}/.config/nix"
+          grep -q "experimental-features" "${HOME_DIR}/.config/nix/nix.conf" 2>/dev/null || \
+            echo "experimental-features = nix-command flakes pipe-operators" >> "${HOME_DIR}/.config/nix/nix.conf"
+        fi
+      fi
+    else
+      echo "    WARN: Nix installation failed"
+    fi
+  else
+    echo "    WARN: Failed to download Nix (network may be restricted)"
+  fi
+  rm -rf "$TMP_NIX"
+fi
+
+# ════════════════════════════════════════════════════════════════
+# Phase 3: Nix Home Manager でデプロイ（成功すれば exit）
+# ════════════════════════════════════════════════════════════════
+
+if [[ "$NIX_INSTALLED" == "true" ]]; then
+  echo ""
+  echo "==> Deploying via Nix Home Manager..."
+
+  ARCH="$(uname -m)"
+  case "$(uname -s)" in
+    Darwin) export NIX_SYSTEM="${ARCH}-darwin" ;;
+    Linux)  export NIX_SYSTEM="${ARCH}-linux" ;;
+  esac
+  export USER="${USER:-$(whoami)}"
+
+  cd "$DOTFILES_DIR"
+  if nix run --impure github:nix-community/home-manager/release-25.11 -- switch -b backup --impure --flake .#default 2>&1; then
+    echo ""
+    echo "==> Home Manager switch completed successfully!"
+    echo "    All agent configs deployed via Nix."
+    exit 0
+  else
+    echo "    WARN: Home Manager switch failed, falling back to symlink deploy"
+  fi
+fi
+
+# ════════════════════════════════════════════════════════════════
+# Phase 4: フォールバック — シンボリックリンクでデプロイ
+# ════════════════════════════════════════════════════════════════
+
+echo ""
+echo "==> Fallback: deploying via symlinks..."
+
 mkdir -p "${HOME_DIR}/.claude/agents"
 mkdir -p "${HOME_DIR}/.claude/commands"
 mkdir -p "${HOME_DIR}/.claude/rules"
@@ -80,7 +173,6 @@ mkdir -p "${HOME_DIR}/.claude/skills"
 mkdir -p "${HOME_DIR}/.codex/skills"
 mkdir -p "${HOME_DIR}/.codex/rules"
 
-# ── ヘルパー: シンボリックリンク作成（既存は上書き） ──
 link_file() {
   local src="$1" dst="$2"
   if [[ -e "$dst" || -L "$dst" ]]; then
@@ -90,45 +182,35 @@ link_file() {
   echo "    ${dst} -> ${src}"
 }
 
-# ── エージェント定義 → ~/.claude/agents/ ──
 echo "==> Agent definitions"
 for f in "${AGENTS_DIR}/definitions/"*.md; do
   [[ -f "$f" ]] || continue
-  name="$(basename "$f")"
-  link_file "$f" "${HOME_DIR}/.claude/agents/${name}"
+  link_file "$f" "${HOME_DIR}/.claude/agents/$(basename "$f")"
 done
 
-# ── コマンド → ~/.claude/commands/ ──
 echo "==> Commands"
 for f in "${AGENTS_DIR}/commands/"*.md; do
   [[ -f "$f" ]] || continue
-  name="$(basename "$f")"
-  link_file "$f" "${HOME_DIR}/.claude/commands/${name}"
+  link_file "$f" "${HOME_DIR}/.claude/commands/$(basename "$f")"
 done
 
-# ── ルール → ~/.claude/rules/ ──
 echo "==> Rules"
 for f in "${AGENTS_DIR}/rules/"*.md; do
   [[ -f "$f" ]] || continue
-  name="$(basename "$f")"
-  link_file "$f" "${HOME_DIR}/.claude/rules/${name}"
+  link_file "$f" "${HOME_DIR}/.claude/rules/$(basename "$f")"
 done
 
-# ── スクリプト → ~/.claude/scripts/ ──
 echo "==> Scripts"
 for f in "${AGENTS_DIR}/scripts/"*; do
   [[ -f "$f" ]] || continue
-  name="$(basename "$f")"
-  link_file "$f" "${HOME_DIR}/.claude/scripts/${name}"
-  chmod +x "${HOME_DIR}/.claude/scripts/${name}"
+  link_file "$f" "${HOME_DIR}/.claude/scripts/$(basename "$f")"
+  chmod +x "${HOME_DIR}/.claude/scripts/$(basename "$f")"
 done
 
-# ── スキル → ~/.claude/skills/ & ~/.codex/skills/ ──
 echo "==> Skills (Claude Code)"
 for d in "${AGENTS_DIR}/skills/"*/; do
   [[ -d "$d" ]] || continue
   name="$(basename "$d")"
-  # .system ディレクトリは除外
   [[ "$name" == ".system" ]] && continue
   link_file "$d" "${HOME_DIR}/.claude/skills/${name}"
 done
@@ -141,230 +223,82 @@ for d in "${AGENTS_DIR}/skills/"*/; do
   link_file "$d" "${HOME_DIR}/.codex/skills/${name}"
 done
 
-# ── settings.json のマージ ──
+# ── settings.json ──
 echo "==> Claude Code settings.json"
 SETTINGS_FILE="${HOME_DIR}/.claude/settings.json"
 
-# agent-skills.nix で定義されている設定を生成
 NEW_SETTINGS=$(cat <<'SETTINGS_EOF'
 {
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/scripts/statusline.sh"
-  },
+  "statusLine": {"type": "command", "command": "~/.claude/scripts/statusline.sh"},
   "enableAllProjectMcpServers": false,
   "permissions": {
     "disableBypassPermissionsMode": "disable",
-    "additionalDirectories": [
-      "~/.local/state/steering"
-    ],
+    "additionalDirectories": ["~/.local/state/steering"],
     "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "WebSearch",
-      "WebFetch",
-      "Agent",
-      "Skill",
-      "MCP",
-      "Bash(git status*)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(git show*)",
-      "Bash(git blame*)",
-      "Bash(git branch*)",
-      "Bash(git fetch*)",
-      "Bash(git pull*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git switch*)",
-      "Bash(git stash*)",
-      "Bash(git tag*)",
-      "Bash(git remote*)",
-      "Bash(git rev-parse*)",
-      "Bash(git ls-files*)",
-      "Bash(git shortlog*)",
-      "Bash(git config --get*)",
-      "Bash(git config --list*)",
-      "Bash(gh pr view*)",
-      "Bash(gh run list*)",
-      "Bash(gh run view*)",
-      "Bash(gh issue view*)",
-      "Bash(npm run *)",
-      "Bash(npm test*)",
-      "Bash(npm ci*)",
-      "Bash(npm ls*)",
-      "Bash(npm outdated*)",
-      "Bash(npm info*)",
-      "Bash(pnpm run *)",
-      "Bash(pnpm test*)",
-      "Bash(pnpm ls*)",
-      "Bash(yarn run *)",
-      "Bash(yarn test*)",
-      "Bash(bun run *)",
-      "Bash(bun test*)",
-      "Bash(make test*)",
-      "Bash(make build*)",
-      "Bash(make check*)",
-      "Bash(cargo build*)",
-      "Bash(cargo test*)",
-      "Bash(cargo check*)",
-      "Bash(cargo clippy*)",
-      "Bash(cargo fmt*)",
-      "Bash(terraform init*)",
-      "Bash(terraform plan*)",
-      "Bash(terraform validate*)",
-      "Bash(terraform fmt*)",
-      "Bash(terraform show*)",
-      "Bash(terraform output*)",
-      "Bash(terraform state list*)",
-      "Bash(terraform state show*)",
-      "Bash(node --version*)",
-      "Bash(python --version*)",
-      "Bash(python -m pytest*)",
-      "Bash(python -m pip list*)",
-      "Bash(mise *)",
-      "Bash(ls*)",
-      "Bash(pwd)",
-      "Bash(echo *)",
-      "Bash(wc *)",
-      "Bash(sort *)",
-      "Bash(uniq *)",
-      "Bash(cut *)",
-      "Bash(tr *)",
-      "Bash(mkdir *)",
-      "Bash(touch *)",
-      "Bash(find *)",
-      "Bash(grep *)",
-      "Bash(rg *)",
-      "Bash(fd *)",
-      "Bash(jq *)",
-      "Bash(yq *)",
-      "Bash(diff *)",
-      "Bash(file *)",
-      "Bash(stat *)",
-      "Bash(which *)",
-      "Bash(date*)",
-      "Bash(printf *)",
-      "Bash(basename *)",
-      "Bash(dirname *)",
-      "Bash(realpath *)",
-      "Bash(true*)",
-      "Bash(false*)",
-      "Bash(test *)",
+      "Read","Edit","Write","WebSearch","WebFetch","Agent","Skill","MCP",
+      "Bash(git status*)","Bash(git diff*)","Bash(git log*)","Bash(git show*)",
+      "Bash(git blame*)","Bash(git branch*)","Bash(git fetch*)","Bash(git pull*)",
+      "Bash(git add*)","Bash(git commit*)","Bash(git switch*)","Bash(git stash*)",
+      "Bash(git tag*)","Bash(git remote*)","Bash(git rev-parse*)","Bash(git ls-files*)",
+      "Bash(git shortlog*)","Bash(git config --get*)","Bash(git config --list*)",
+      "Bash(gh pr view*)","Bash(gh run list*)","Bash(gh run view*)","Bash(gh issue view*)",
+      "Bash(npm run *)","Bash(npm test*)","Bash(npm ci*)","Bash(npm ls*)",
+      "Bash(npm outdated*)","Bash(npm info*)","Bash(pnpm run *)","Bash(pnpm test*)",
+      "Bash(pnpm ls*)","Bash(yarn run *)","Bash(yarn test*)","Bash(bun run *)",
+      "Bash(bun test*)","Bash(make test*)","Bash(make build*)","Bash(make check*)",
+      "Bash(cargo build*)","Bash(cargo test*)","Bash(cargo check*)","Bash(cargo clippy*)",
+      "Bash(cargo fmt*)","Bash(terraform init*)","Bash(terraform plan*)",
+      "Bash(terraform validate*)","Bash(terraform fmt*)","Bash(terraform show*)",
+      "Bash(terraform output*)","Bash(terraform state list*)","Bash(terraform state show*)",
+      "Bash(node --version*)","Bash(python --version*)","Bash(python -m pytest*)",
+      "Bash(python -m pip list*)","Bash(mise *)","Bash(ls*)","Bash(pwd)","Bash(echo *)",
+      "Bash(wc *)","Bash(sort *)","Bash(uniq *)","Bash(cut *)","Bash(tr *)",
+      "Bash(mkdir *)","Bash(touch *)","Bash(find *)","Bash(grep *)","Bash(rg *)",
+      "Bash(fd *)","Bash(jq *)","Bash(yq *)","Bash(diff *)","Bash(file *)",
+      "Bash(stat *)","Bash(which *)","Bash(date*)","Bash(printf *)","Bash(basename *)",
+      "Bash(dirname *)","Bash(realpath *)","Bash(true*)","Bash(false*)","Bash(test *)",
       "Bash([ *)"
     ],
     "ask": [
-      "Bash(nix *)",
-      "Bash(nix-store *)",
-      "Bash(gh *)",
-      "Bash(npm install*)",
-      "Bash(pnpm install*)",
-      "Bash(yarn install*)",
-      "Bash(bun install*)",
-      "Bash(codex *)",
-      "Bash(git push*)",
-      "Bash(npm publish*)",
-      "Bash(gh pr merge*)",
-      "Bash(git rebase*)",
-      "Bash(git merge*)",
-      "Bash(git checkout*)",
-      "Bash(git restore*)",
-      "Bash(rm *)",
-      "Bash(mv *)",
-      "Bash(cp *)",
-      "Bash(chmod *)",
-      "Bash(terraform apply*)",
-      "Bash(terraform destroy*)",
-      "Bash(terraform import*)",
-      "Bash(sed *)",
-      "Bash(awk *)",
-      "Bash(xargs *)",
-      "Bash(tee *)",
-      "Bash(make *)",
-      "Bash(make)",
-      "Bash(node *)",
-      "Bash(python *)",
-      "Bash(cargo run*)"
+      "Bash(nix *)","Bash(nix-store *)","Bash(gh *)","Bash(npm install*)",
+      "Bash(pnpm install*)","Bash(yarn install*)","Bash(bun install*)","Bash(codex *)",
+      "Bash(git push*)","Bash(npm publish*)","Bash(gh pr merge*)","Bash(git rebase*)",
+      "Bash(git merge*)","Bash(git checkout*)","Bash(git restore*)","Bash(rm *)",
+      "Bash(mv *)","Bash(cp *)","Bash(chmod *)","Bash(terraform apply*)",
+      "Bash(terraform destroy*)","Bash(terraform import*)","Bash(sed *)","Bash(awk *)",
+      "Bash(xargs *)","Bash(tee *)","Bash(make *)","Bash(make)","Bash(node *)",
+      "Bash(python *)","Bash(cargo run*)"
     ],
     "deny": [
-      "Bash(sudo *)",
-      "Bash(rm -rf /)",
-      "Bash(rm -rf /*)",
-      "Bash(rm -rf ~*)",
-      "Bash(rm -fr *)",
-      "Bash(mkfs *)",
-      "Bash(dd *)",
-      "Bash(diskutil erase*)",
-      "Bash(shutdown *)",
-      "Bash(reboot*)",
-      "Bash(bash*)",
-      "Bash(sh *)",
-      "Bash(sh)",
-      "Bash(zsh*)",
-      "Bash(dash*)",
-      "Bash(eval *)",
-      "Bash(exec *)",
-      "Bash(source *)",
-      "Bash(curl *)",
-      "Bash(wget *)",
-      "Bash(nc *)",
-      "Bash(ncat *)",
-      "Bash(telnet *)",
-      "Bash(scp *)",
-      "Bash(scp)",
-      "Bash(rsync *)",
-      "Bash(rsync)",
-      "Bash(sftp *)",
-      "Bash(sftp)",
-      "Bash(ftp *)",
-      "Bash(ftp)",
-      "Bash(ssh *)",
-      "Bash(ssh)",
-      "Bash(* .env*)",
-      "Bash(* ~/.ssh/*)",
-      "Bash(* ~/.aws/*)",
-      "Bash(* ~/.config/gh/*)",
-      "Bash(* ~/.git-credentials)",
-      "Bash(* ~/.netrc)",
-      "Bash(* ~/.npmrc)",
-      "Bash(chmod 777 *)",
-      "Bash(chmod -R 777 *)",
-      "Bash(chmod 0777 *)",
-      "Bash(chmod a+rwx *)",
-      "Bash(chown *)",
-      "Bash(chgrp *)",
-      "Bash(git push --force*)",
-      "Bash(git push * --force*)",
-      "Bash(git push -f *)",
-      "Bash(git push * -f *)",
-      "Bash(git reset --hard*)",
-      "Bash(git clean *)",
-      "Bash(git checkout -f *)",
-      "Bash(git checkout -- .)",
-      "Bash(git switch -f *)",
-      "Bash(git branch -D *)",
-      "Bash(git tag -d *)",
-      "Bash(git reflog expire*)",
-      "Bash(git restore .)",
-      "Bash(git restore --worktree .)"
+      "Bash(sudo *)","Bash(rm -rf /)","Bash(rm -rf /*)","Bash(rm -rf ~*)",
+      "Bash(rm -fr *)","Bash(mkfs *)","Bash(dd *)","Bash(diskutil erase*)",
+      "Bash(shutdown *)","Bash(reboot*)","Bash(bash*)","Bash(sh *)","Bash(sh)",
+      "Bash(zsh*)","Bash(dash*)","Bash(eval *)","Bash(exec *)","Bash(source *)",
+      "Bash(curl *)","Bash(wget *)","Bash(nc *)","Bash(ncat *)","Bash(telnet *)",
+      "Bash(scp *)","Bash(scp)","Bash(rsync *)","Bash(rsync)","Bash(sftp *)",
+      "Bash(sftp)","Bash(ftp *)","Bash(ftp)","Bash(ssh *)","Bash(ssh)",
+      "Bash(* .env*)","Bash(* ~/.ssh/*)","Bash(* ~/.aws/*)","Bash(* ~/.config/gh/*)",
+      "Bash(* ~/.git-credentials)","Bash(* ~/.netrc)","Bash(* ~/.npmrc)",
+      "Bash(chmod 777 *)","Bash(chmod -R 777 *)","Bash(chmod 0777 *)",
+      "Bash(chmod a+rwx *)","Bash(chown *)","Bash(chgrp *)",
+      "Bash(git push --force*)","Bash(git push * --force*)","Bash(git push -f *)",
+      "Bash(git push * -f *)","Bash(git reset --hard*)","Bash(git clean *)",
+      "Bash(git checkout -f *)","Bash(git checkout -- .)","Bash(git switch -f *)",
+      "Bash(git branch -D *)","Bash(git tag -d *)","Bash(git reflog expire*)",
+      "Bash(git restore .)","Bash(git restore --worktree .)"
     ]
   }
 }
 SETTINGS_EOF
 )
 
-# 既存の settings.json があればマージ、なければ新規作成
 if [[ -f "$SETTINGS_FILE" ]] && command -v jq &>/dev/null; then
   echo "    Merging with existing settings.json"
   EXISTING=$(cat "$SETTINGS_FILE")
-  # 既存の hooks 等を保持しつつ、新しい設定をマージ
   echo "$EXISTING" | jq --argjson new "$NEW_SETTINGS" '
-    # 既存の permissions.allow に新規を追加（重複排除）
     ($new.permissions.allow // []) as $new_allow |
     (.permissions.allow // []) as $old_allow |
     ($old_allow + $new_allow | unique) as $merged_allow |
-    # マージ
     . * $new |
     .permissions.allow = $merged_allow
   ' > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
@@ -376,9 +310,7 @@ fi
 # ── Codex CLI ルール ──
 echo "==> Codex CLI rules"
 cat > "${HOME_DIR}/.codex/rules/nix-managed.rules" <<'CODEX_EOF'
-# ── allow: 自動許可 ──
-
-# Git（安全なサブコマンド）
+# ── allow ──
 prefix_rule(pattern=["git", "status"], decision="allow")
 prefix_rule(pattern=["git", "diff"], decision="allow")
 prefix_rule(pattern=["git", "log"], decision="allow")
@@ -398,14 +330,10 @@ prefix_rule(pattern=["git", "ls-files"], decision="allow")
 prefix_rule(pattern=["git", "shortlog"], decision="allow")
 prefix_rule(pattern=["git", "config", "--get"], decision="allow")
 prefix_rule(pattern=["git", "config", "--list"], decision="allow")
-
-# GitHub CLI（read-only 系のみ）
 prefix_rule(pattern=["gh", "pr", "view"], decision="allow")
 prefix_rule(pattern=["gh", "run", "list"], decision="allow")
 prefix_rule(pattern=["gh", "run", "view"], decision="allow")
 prefix_rule(pattern=["gh", "issue", "view"], decision="allow")
-
-# Package managers（read / build / test）
 prefix_rule(pattern=["npm", "run"], decision="allow")
 prefix_rule(pattern=["npm", "test"], decision="allow")
 prefix_rule(pattern=["npm", "ci"], decision="allow")
@@ -419,8 +347,6 @@ prefix_rule(pattern=["yarn", "run"], decision="allow")
 prefix_rule(pattern=["yarn", "test"], decision="allow")
 prefix_rule(pattern=["bun", "run"], decision="allow")
 prefix_rule(pattern=["bun", "test"], decision="allow")
-
-# Build tools
 prefix_rule(pattern=["make", "test"], decision="allow")
 prefix_rule(pattern=["make", "build"], decision="allow")
 prefix_rule(pattern=["make", "check"], decision="allow")
@@ -437,15 +363,11 @@ prefix_rule(pattern=["terraform", "show"], decision="allow")
 prefix_rule(pattern=["terraform", "output"], decision="allow")
 prefix_rule(pattern=["terraform", "state", "list"], decision="allow")
 prefix_rule(pattern=["terraform", "state", "show"], decision="allow")
-
-# Runtime
 prefix_rule(pattern=["node", "--version"], decision="allow")
 prefix_rule(pattern=["python", "--version"], decision="allow")
 prefix_rule(pattern=["python", "-m", "pytest"], decision="allow")
 prefix_rule(pattern=["python", "-m", "pip", "list"], decision="allow")
 prefix_rule(pattern=["mise"], decision="allow")
-
-# Shell utilities
 prefix_rule(pattern=["ls"], decision="allow")
 prefix_rule(pattern=["pwd"], decision="allow")
 prefix_rule(pattern=["echo"], decision="allow")
@@ -475,8 +397,7 @@ prefix_rule(pattern=["true"], decision="allow")
 prefix_rule(pattern=["false"], decision="allow")
 prefix_rule(pattern=["test"], decision="allow")
 prefix_rule(pattern=["["], decision="allow")
-
-# ── prompt: 確認が必要 ──
+# ── prompt ──
 prefix_rule(pattern=["nix"], decision="prompt")
 prefix_rule(pattern=["nix-store"], decision="prompt")
 prefix_rule(pattern=["gh"], decision="prompt")
@@ -507,8 +428,7 @@ prefix_rule(pattern=["make"], decision="prompt")
 prefix_rule(pattern=["node"], decision="prompt")
 prefix_rule(pattern=["python"], decision="prompt")
 prefix_rule(pattern=["cargo", "run"], decision="prompt")
-
-# ── forbidden: 完全ブロック ──
+# ── forbidden ──
 prefix_rule(pattern=["sudo"], decision="forbidden")
 prefix_rule(pattern=["rm", "-rf", "/"], decision="forbidden")
 prefix_rule(pattern=["rm", "-rf", "~"], decision="forbidden")
@@ -556,7 +476,7 @@ prefix_rule(pattern=["git", "restore", "--worktree", "."], decision="forbidden")
 CODEX_EOF
 
 echo ""
-echo "==> Done! Deployed:"
+echo "==> Done! (fallback symlink deploy)"
 echo "    - Agent definitions:  ~/.claude/agents/"
 echo "    - Commands:           ~/.claude/commands/"
 echo "    - Rules:              ~/.claude/rules/"
