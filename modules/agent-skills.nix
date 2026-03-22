@@ -307,9 +307,10 @@ in
     # リポジトリレベルの .claude/settings.json（curl フォールバック付き）が必要。
     hooks = {
       SessionStart = [{
+        matcher = "startup|resume";
         hooks = [{
           type = "command";
-          command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh || true";
+          command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh >/dev/null || echo '[setup-nix-web] hook failed' >&2";
           timeout = 300;
         }];
       }];
