@@ -22,8 +22,8 @@
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       # --impure で実行時のシステムを検出（デフォルトは aarch64-darwin）
-      system = builtins.getEnv "NIX_SYSTEM"
-        |> (s: if s == "" then "aarch64-darwin" else s);
+      nixSystem = builtins.getEnv "NIX_SYSTEM";
+      system = if nixSystem == "" then "aarch64-darwin" else nixSystem;
       pkgs = nixpkgs.legacyPackages.${system};
 
       mkHome = home-manager.lib.homeManagerConfiguration {
