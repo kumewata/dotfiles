@@ -18,6 +18,59 @@ fi
 echo "==> Deploying agent configs from ${DOTFILES_DIR}"
 echo "    Home: ${HOME_DIR}"
 
+# ── CLI ツールのインストール ──
+
+# GitHub CLI (gh)
+if ! command -v gh &>/dev/null; then
+  echo "==> Installing GitHub CLI (gh)..."
+  GH_VERSION="2.67.0"
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)  GH_ARCH="linux_amd64" ;;
+    aarch64) GH_ARCH="linux_arm64" ;;
+    arm64)   GH_ARCH="macOS_arm64" ;;  # macOS Apple Silicon
+    *)       echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"; GH_ARCH="" ;;
+  esac
+  if [[ -n "${GH_ARCH:-}" ]]; then
+    GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
+    TMP_GH="$(mktemp -d)"
+    if curl -fsSL "$GH_URL" -o "${TMP_GH}/gh.tar.gz" 2>/dev/null; then
+      tar -xzf "${TMP_GH}/gh.tar.gz" -C "$TMP_GH"
+      # Install to /usr/local/bin if writable, else ~/bin
+      if [[ -w /usr/local/bin ]]; then
+        cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" /usr/local/bin/gh
+        echo "    Installed gh ${GH_VERSION} to /usr/local/bin/gh"
+      else
+        mkdir -p "${HOME_DIR}/bin"
+        cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" "${HOME_DIR}/bin/gh"
+        export PATH="${HOME_DIR}/bin:$PATH"
+        echo "    Installed gh ${GH_VERSION} to ${HOME_DIR}/bin/gh"
+      fi
+    else
+      echo "    WARN: Failed to download gh CLI (network may be restricted)"
+    fi
+    rm -rf "$TMP_GH"
+  fi
+else
+  echo "==> gh already installed: $(gh --version | head -1)"
+fi
+
+# OpenAI Codex CLI
+if command -v npm &>/dev/null; then
+  if ! command -v codex &>/dev/null && ! npm list -g @openai/codex &>/dev/null 2>&1; then
+    echo "==> Installing OpenAI Codex CLI..."
+    if npm install -g @openai/codex 2>/dev/null; then
+      echo "    Installed codex CLI: $(codex --version 2>/dev/null || echo 'ok')"
+    else
+      echo "    WARN: Failed to install codex CLI (try: npx @openai/codex)"
+    fi
+  else
+    echo "==> codex CLI already available"
+  fi
+else
+  echo "==> WARN: npm not found, skipping codex CLI install"
+fi
+
 # ── ディレクトリ作成 ──
 mkdir -p "${HOME_DIR}/.claude/agents"
 mkdir -p "${HOME_DIR}/.claude/commands"
