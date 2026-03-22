@@ -33,6 +33,9 @@ if [ "$(uname -s)" != "Linux" ]; then
   exit 0
 fi
 
+# ── Ensure USER is set (required by nix.sh profile script) ────
+export USER="${USER:-$(whoami)}"
+
 # ── Helper functions ───────────────────────────────────────────
 
 source_nix_env() {
@@ -82,21 +85,65 @@ START_TIME=$(date +%s)
 # 1. Install Nix (single-user, no daemon)
 if ! command -v nix >/dev/null 2>&1; then
   log "Installing Nix (single-user mode)..."
+
+  nix_installed=false
+
+  # Method A: Determinate Systems installer (preferred)
   TMP_INSTALLER="$(mktemp)"
   trap 'rm -f "$TMP_INSTALLER"' EXIT
-  curl --proto '=https' --tlsv1.2 -sSfL \
-    --connect-timeout 15 --max-time 120 \
-    https://install.determinate.systems/nix \
-    -o "$TMP_INSTALLER" \
-    || { log "ERROR: Failed to download Nix installer"; exit 1; }
-  sh "$TMP_INSTALLER" install linux \
-    --init none \
-    --no-confirm \
-    --diagnostic-endpoint "" \
-    || { log "ERROR: Nix installation failed"; exit 1; }
+  if curl --proto '=https' --tlsv1.2 -sSfL \
+       --connect-timeout 15 --max-time 120 \
+       https://install.determinate.systems/nix \
+       -o "$TMP_INSTALLER" 2>/dev/null; then
+    if sh "$TMP_INSTALLER" install linux \
+         --init none \
+         --no-confirm \
+         --diagnostic-endpoint "" 2>&1; then
+      nix_installed=true
+      log "Nix installed via Determinate Systems installer"
+    else
+      log "WARN: Determinate Systems installer failed — trying fallback"
+    fi
+  else
+    log "WARN: Could not download Determinate Systems installer — trying fallback"
+  fi
   rm -f "$TMP_INSTALLER"
   trap - EXIT
-  log "Nix installed successfully"
+
+  # Method B: Official nixos.org tarball (fallback)
+  if [ "$nix_installed" = false ]; then
+    NIX_VERSION="2.28.3"
+    TARBALL_URL="https://releases.nixos.org/nix/nix-${NIX_VERSION}/nix-${NIX_VERSION}-${ARCH}-linux.tar.xz"
+    TMP_DIR="$(mktemp -d)"
+    trap 'rm -rf "$TMP_DIR"' EXIT
+
+    log "Downloading Nix ${NIX_VERSION} from nixos.org..."
+    curl --proto '=https' --tlsv1.2 -sSfL \
+      --connect-timeout 15 --max-time 180 \
+      "$TARBALL_URL" -o "$TMP_DIR/nix.tar.xz" \
+      || { log "ERROR: Failed to download Nix tarball"; exit 1; }
+
+    tar xf "$TMP_DIR/nix.tar.xz" -C "$TMP_DIR"
+
+    # Ensure nixbld group exists (required by installer)
+    groupadd -f nixbld 2>/dev/null || true
+    # Configure single-user mode (no build-users-group)
+    mkdir -p /etc/nix
+    if ! grep -q "^build-users-group" /etc/nix/nix.conf 2>/dev/null; then
+      echo "build-users-group = " >> /etc/nix/nix.conf
+    fi
+    if ! grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null; then
+      echo "experimental-features = nix-command flakes pipe-operators" >> /etc/nix/nix.conf
+    fi
+
+    # Run the official installer in single-user (no-daemon) mode
+    bash "$TMP_DIR"/nix-*-linux/install --no-daemon \
+      || { log "ERROR: Nix tarball installation failed"; exit 1; }
+
+    rm -rf "$TMP_DIR"
+    trap - EXIT
+    log "Nix installed via official tarball"
+  fi
 else
   log "Nix already installed — skipping installation"
 fi
@@ -126,7 +173,7 @@ export NIX_SYSTEM="$NIX_SYSTEM_VALUE"
 export USER="${USER:-$(whoami)}"
 
 nix run --impure "github:nix-community/home-manager/release-25.11" \
-  -- switch --impure --flake "$DOTFILES_DIR#default" \
+  -- switch --impure --flake "$DOTFILES_DIR#default" -b backup \
   || { log "ERROR: Home Manager switch failed"; exit 1; }
 
 log "Home Manager switch completed"
