@@ -9,8 +9,8 @@
 }:
 let
   homeDir =
-    if pkgs.stdenv.isDarwin
-    then "/Users/${username}"
+    if pkgs.stdenv.isDarwin then "/Users/${username}"
+    else if username == "root" then "/root"
     else "/home/${username}";
 
   # エージェント関連ファイルのベースパス

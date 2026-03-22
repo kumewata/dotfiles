@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./setup-nix-web.sh"
+      }
+    ]
+  }
+}
