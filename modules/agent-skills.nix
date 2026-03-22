@@ -91,6 +91,11 @@ in
       source = ../config/agents/scripts/statusline.sh;
       executable = true;
     };
+    # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
+    ".claude/scripts/setup-nix-web.sh" = {
+      source = ../setup-nix-web.sh;
+      executable = true;
+    };
     # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
     # default.rules はセッション中に自動追記されるため別ファイルで管理
     ".codex/rules/nix-managed.rules".text = ''
@@ -297,6 +302,18 @@ in
     '';
     # Claude Code グローバル設定（~/.claude/settings.json）
     ".claude/settings.json".text = builtins.toJSON {
+    # Claude Code Web 用 SessionStart hook（HM 適用後は全リポジトリで自動発火）
+    # NOTE: このグローバル hook は HM 適用後にのみ有効。初回ブートストラップには
+    # リポジトリレベルの .claude/settings.json（curl フォールバック付き）が必要。
+    hooks = {
+      SessionStart = [{
+        hooks = [{
+          type = "command";
+          command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh || true";
+          timeout = 300;
+        }];
+      }];
+    };
     statusLine = {
       type = "command";
       command = "~/.claude/scripts/statusline.sh";

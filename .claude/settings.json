@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./setup-nix-web.sh",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-nix-web.sh ] && ~/.claude/scripts/setup-nix-web.sh || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/kumewata/dotfiles/main/setup-nix-web.sh -o \"$t\" && bash \"$t\"; rm -f \"$t\"; }; } || true",
             "timeout": 300
           }
         ]

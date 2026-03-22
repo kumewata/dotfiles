@@ -28,8 +28,17 @@ log() { echo "[$(date '+%H:%M:%S')] $*" >&2; }
 
 # ── Guards ─────────────────────────────────────────────────────
 
-# Only run in Claude Code Web (macOS users use `hms` directly)
-if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+# Only run in Claude Code Web (Linux containers; macOS users use `hms` directly)
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ] || [ "$(uname -s)" != "Linux" ]; then
+  exit 0
+fi
+
+# ── Prevent parallel execution (global + project hooks may fire concurrently) ──
+LOCK_FILE="$HOME/.local/state/nix-web-setup.lock"
+mkdir -p "$(dirname "$LOCK_FILE")"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+  echo "[setup-nix-web] Another instance is running — skipping" >&2
   exit 0
 fi
 
@@ -133,7 +142,7 @@ if ! command -v nix >/dev/null 2>&1; then
       echo "build-users-group = " >> /etc/nix/nix.conf
     fi
     if ! grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null; then
-      echo "experimental-features = nix-command flakes pipe-operators" >> /etc/nix/nix.conf
+      echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
     fi
 
     # Run the official installer in single-user (no-daemon) mode

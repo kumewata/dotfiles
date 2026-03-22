@@ -64,7 +64,7 @@ dotfiles/
 
 ### 1. SessionStart hook の設定
 
-`.claude/settings.json` にリポジトリレベルの hook を設定します。このファイルはリポジトリに含めて管理します。
+`.claude/settings.json` にリポジトリレベルの hook を設定します。このファイルはリポジトリに含めて管理し、**任意のリポジトリにコピーするだけで動く**ポータブルな設計です。
 
 ```json
 {
@@ -74,7 +74,7 @@ dotfiles/
         "hooks": [
           {
             "type": "command",
-            "command": "./setup-nix-web.sh",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-nix-web.sh ] && ~/.claude/scripts/setup-nix-web.sh || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/kumewata/dotfiles/main/setup-nix-web.sh -o \"$t\" && bash \"$t\"; rm -f \"$t\"; }; } || true",
             "timeout": 300
           }
         ]
@@ -86,7 +86,9 @@ dotfiles/
 
 **ポイント**:
 - `timeout: 300`（5分）: Nix のインストールと Home Manager の初回実行には時間がかかるため、十分なタイムアウトを設定します
-- `command` の CWD はプロジェクトルートです
+- `CLAUDE_CODE_REMOTE` ガードにより、ローカル macOS では何も実行しません
+- 2段階フォールバック: ローカルにスクリプトがあれば直接実行、なければ GitHub からダウンロード
+- **他のリポジトリでも、この JSON をコピーするだけで Claude Code Web セットアップが有効になります**
 
 ### 2. セットアップスクリプト（setup-nix-web.sh）
 
@@ -98,13 +100,13 @@ dotfiles/
 #### ガード条件
 
 ```bash
-# Only run in Claude Code Web (macOS users use `hms` directly)
-if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+# Only run in Claude Code Web (Linux containers; macOS users use `hms` directly)
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ] || [ "$(uname -s)" != "Linux" ]; then
   exit 0
 fi
 ```
 
-`CLAUDE_CODE_REMOTE` は Claude Code Web 環境でのみ `true` にセットされる環境変数です。これにより、ローカルの macOS や WSL 上の Linux での誤発火を防ぎます。
+`CLAUDE_CODE_REMOTE` は Claude Code Web 環境でのみ `true` にセットされる環境変数です。加えて `uname -s` による OS チェックを defense-in-depth として追加し、ローカルの macOS での誤発火を二重に防ぎます（WSL は `CLAUDE_CODE_REMOTE` がセットされないため、そちらのガードで防止されます）。
 
 #### 冪等性チェック
 
@@ -277,6 +279,8 @@ chmod +x setup-nix-web.sh
 
 ### Step 4: .claude/settings.json に SessionStart hook を設定
 
+以下のポータブルな hook を設定します。**この JSON は任意のリポジトリにコピーするだけで動きます。**
+
 ```json
 {
   "hooks": {
@@ -285,7 +289,7 @@ chmod +x setup-nix-web.sh
         "hooks": [
           {
             "type": "command",
-            "command": "./setup-nix-web.sh",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-nix-web.sh ] && ~/.claude/scripts/setup-nix-web.sh || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/<your-user>/<your-dotfiles>/main/setup-nix-web.sh -o \"$t\" && bash \"$t\"; rm -f \"$t\"; }; } || true",
             "timeout": 300
           }
         ]
@@ -294,6 +298,13 @@ chmod +x setup-nix-web.sh
   }
 }
 ```
+
+`<your-user>/<your-dotfiles>` を自分の dotfiles リポジトリに置き換えてください。
+
+**実行フロー**:
+1. `CLAUDE_CODE_REMOTE != true`（ローカル macOS）→ 何もしない
+2. `~/.claude/scripts/setup-nix-web.sh` が存在（Home Manager 適用済み）→ ローカルスクリプトを実行
+3. スクリプトが存在しない（初回セッション）→ GitHub からダウンロードして実行
 
 ### Step 5: push して Claude Code Web で確認
 
@@ -304,6 +315,49 @@ git push
 ```
 
 Claude Code Web で対象リポジトリを開くと、セッション開始時に自動でセットアップが実行されます。
+
+## 他のリポジトリでの使い方
+
+dotfiles 以外のリポジトリでも Claude Code Web セットアップを有効にするには、対象リポジトリに `.claude/settings.json` を追加するだけです。
+
+### 方法1: リポジトリに hook を追加（推奨）
+
+対象リポジトリのルートに `.claude/settings.json` を作成し、Step 4 の JSON をコピーします。
+
+```bash
+# 対象リポジトリで（URL は自分の dotfiles リポジトリに置き換えてください）
+mkdir -p .claude
+cat > .claude/settings.json << 'SETTINGS'
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-nix-web.sh ] && ~/.claude/scripts/setup-nix-web.sh || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/<your-user>/<your-dotfiles>/main/setup-nix-web.sh -o \"$t\" && bash \"$t\"; rm -f \"$t\"; }; } || true",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}
+SETTINGS
+```
+
+> **セキュリティ上の注意**: `curl | bash` パターンはリモートスクリプトを検証なしに実行します。自分が管理するリポジトリの URL のみを指定してください。より安全にしたい場合は、URL にコミットハッシュを含めることで特定バージョンに固定できます（例: `/<commit-sha>/setup-nix-web.sh`）。
+
+### 方法2: グローバル設定による自動化
+
+Home Manager で `~/.claude/settings.json` にグローバルな SessionStart hook をデプロイしておけば、**リポジトリ側の設定なしで**全リポジトリで自動セットアップが有効になります。
+
+ただし、Claude Code Web のセッションはエフェメラルなので、グローバル設定は Home Manager が適用されるまで存在しません。初回セッションでは以下のいずれかが必要です:
+
+- dotfiles リポジトリを最初に開いて Home Manager を適用する
+- 対象リポジトリに方法1 の hook を追加しておく
+
+初回セットアップ後は、同一コンテナ内の2つ目以降のリポジトリでグローバル hook が有効になります。
 
 ## 動作検証
 
