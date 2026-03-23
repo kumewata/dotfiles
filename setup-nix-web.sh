@@ -74,9 +74,11 @@ export_env() {
 mkdir -p "$(dirname "$MARKER_FILE")" "$(dirname "$LOG_FILE")"
 
 if [ -d "$DOTFILES_DIR" ]; then
-  current_ref="$(git -C "$DOTFILES_DIR" rev-parse HEAD 2>/dev/null || echo "")"
-  if [ -f "$MARKER_FILE" ] && [ -n "$current_ref" ] && [ "$(cat "$MARKER_FILE")" = "$current_ref" ]; then
-    log "Already set up for commit $current_ref — skipping"
+  # Fetch latest from remote so we compare against the newest commit
+  git -C "$DOTFILES_DIR" fetch --quiet origin 2>/dev/null || true
+  remote_ref="$(git -C "$DOTFILES_DIR" rev-parse origin/main 2>/dev/null || echo "")"
+  if [ -f "$MARKER_FILE" ] && [ -n "$remote_ref" ] && [ "$(cat "$MARKER_FILE")" = "$remote_ref" ]; then
+    log "Already set up for commit $remote_ref — skipping"
     source_nix_env
     export_env
     exit 0
@@ -168,7 +170,9 @@ fi
 # 3. Clone or update dotfiles
 if [ -d "$DOTFILES_DIR" ]; then
   log "Updating dotfiles..."
-  git -C "$DOTFILES_DIR" pull --ff-only \
+  # fetch was already done in idempotency check; just fast-forward merge
+  git -C "$DOTFILES_DIR" merge --ff-only origin/main 2>/dev/null \
+    || git -C "$DOTFILES_DIR" pull --ff-only \
     || log "WARN: git pull failed — proceeding with current checkout"
 else
   log "Cloning dotfiles..."
