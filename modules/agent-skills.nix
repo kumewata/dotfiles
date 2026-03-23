@@ -308,11 +308,18 @@ in
     hooks = {
       SessionStart = [{
         matcher = "startup|resume";
-        hooks = [{
-          type = "command";
-          command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh >/dev/null || echo '[setup-nix-web] hook failed' >&2";
-          timeout = 300;
-        }];
+        hooks = [
+          {
+            type = "command";
+            command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh >/dev/null || echo '[setup-nix-web] hook failed' >&2";
+            timeout = 300;
+          }
+          {
+            type = "command";
+            command = ''[ "$CLAUDE_CODE_REMOTE" = "true" ] && [ -n "$CLAUDE_ENV_FILE" ] && [ -d "$HOME/.nix-profile/bin" ] && echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' >> "$CLAUDE_ENV_FILE" || true'';
+            timeout = 5;
+          }
+        ];
       }];
     };
     statusLine = {
