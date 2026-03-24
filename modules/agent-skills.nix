@@ -96,6 +96,11 @@ in
       source = ../config/agents/scripts/pretooluse-deny.sh;
       executable = true;
     };
+    # PreToolUse hook: 認証情報ファイルの読み取りガード
+    ".claude/scripts/credential-guard.sh" = {
+      source = ../config/agents/scripts/credential-guard.sh;
+      executable = true;
+    };
     # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
     ".claude/scripts/setup-nix-web.sh" = {
       source = ../setup-nix-web.sh;
@@ -326,14 +331,24 @@ in
           }
         ];
       }];
-      PreToolUse = [{
-        matcher = "Bash";
-        hooks = [{
-          type = "command";
-          command = "$HOME/.claude/scripts/pretooluse-deny.sh";
-          timeout = 5;
-        }];
-      }];
+      PreToolUse = [
+        {
+          matcher = "Bash";
+          hooks = [{
+            type = "command";
+            command = "$HOME/.claude/scripts/pretooluse-deny.sh";
+            timeout = 5;
+          }];
+        }
+        {
+          matcher = "Read|Edit|Write|Grep|Glob";
+          hooks = [{
+            type = "command";
+            command = "$HOME/.claude/scripts/credential-guard.sh";
+            timeout = 5;
+          }];
+        }
+      ];
     };
     statusLine = {
       type = "command";
