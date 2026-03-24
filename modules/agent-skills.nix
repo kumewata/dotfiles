@@ -91,6 +91,11 @@ in
       source = ../config/agents/scripts/statusline.sh;
       executable = true;
     };
+    # PreToolUse hook: curl/wget の動的権限検証
+    ".claude/scripts/pretooluse-deny.sh" = {
+      source = ../config/agents/scripts/pretooluse-deny.sh;
+      executable = true;
+    };
     # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
     ".claude/scripts/setup-nix-web.sh" = {
       source = ../setup-nix-web.sh;
@@ -321,6 +326,14 @@ in
           }
         ];
       }];
+      PreToolUse = [{
+        matcher = "Bash";
+        hooks = [{
+          type = "command";
+          command = "$HOME/.claude/scripts/pretooluse-deny.sh";
+          timeout = 5;
+        }];
+      }];
     };
     statusLine = {
       type = "command";
@@ -507,9 +520,7 @@ in
         "Bash(exec *)"
         # source はシェルビルトインのため top-level 呼び出しのみブロック
         "Bash(source *)"
-        # 外部送信系
-        "Bash(curl *)"
-        "Bash(wget *)"
+        # 外部送信系（curl/wget は PreToolUse hook に移行）
         "Bash(nc *)"
         "Bash(ncat *)"
         "Bash(telnet *)"
