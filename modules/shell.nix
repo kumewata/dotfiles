@@ -77,10 +77,6 @@
         fi
       fi
 
-      # dbt Fusion extension (ensure dbt binary dir on PATH)
-      if [[ ":''$PATH:" != *":''$HOME/.local/bin:"* ]]; then
-        export PATH="''$HOME/.local/bin:''$PATH"
-      fi
     '';
   };
 

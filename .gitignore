@@ -1,2 +1,3 @@
 .steering/
 .githooks/sensitive-patterns.txt
+.zshrc.legacy
