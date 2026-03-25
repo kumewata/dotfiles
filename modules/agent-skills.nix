@@ -33,6 +33,7 @@ let
   # デプロイ対象のコマンド（config/agents/commands/ 配下）
   agentCommands = [
     "orchestrate"
+    "update-steering"
   ];
 
   # 名前リストから home.file エントリを生成するヘルパー
