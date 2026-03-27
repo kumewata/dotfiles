@@ -355,6 +355,7 @@ in
       type = "command";
       command = "~/.claude/scripts/statusline.sh";
     };
+    cleanupPeriodDays = 720;
     enableAllProjectMcpServers = false;
     permissions = {
       disableBypassPermissionsMode = "disable";
