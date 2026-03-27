@@ -5,6 +5,7 @@
   imports = [
     ./modules/agent-skills.nix
     ./modules/git.nix
+    ./modules/launchd.nix
     ./modules/packages.nix
     ./modules/shell.nix
   ];
