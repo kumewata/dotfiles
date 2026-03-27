@@ -1,3 +1,5 @@
 .steering/
 .githooks/sensitive-patterns.txt
 .zshrc.legacy
+# home-manager build が生成する Nix store へのシンボリックリンク
+result
