@@ -48,15 +48,12 @@ Before invoking the first agent:
 For each agent in the pipeline (except codex-review):
 
 ### 4a. Invoke the agent
-
 Use the environment's agent mechanism to spawn the agent with:
-
 - The original task description
 - The handoff document from the previous agent (if any)
 - Context about the steering documents location
 
 Tool mapping:
-
 - Claude Code: Agent tool
 - Codex: `spawn_agent`, `send_input`, `wait_agent`
 
@@ -132,16 +129,13 @@ Construct the review prompt with:
 [Same format]
 
 ### Review Instructions
-
 Review the above agent findings and diff comprehensively:
-
 1. Are there issues earlier phases missed?
 2. Are there contradictions or duplicates in the findings?
 3. Overall implementation quality assessment: SHIP / NEEDS WORK / BLOCKED
 ```
 
 **Failure handling**:
-
 - In Claude Code, if `codex` is not installed, not authenticated, or times out, do not fail the orchestration. Record `codex-review: SKIPPED (reason)` in the final report and continue to Step 6.
 - In Codex itself, do not shell out to nested `codex exec` unless there is a specific need. The current Codex session may perform the final review directly and record it as `codex-review: COMPLETE (in-session)`.
 

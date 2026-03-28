@@ -65,23 +65,18 @@ handoff の最小フォーマット:
 ## HANDOFF: [previous-agent] -> [next-agent]
 
 ### Context
-
 [Summary of work completed]
 
 ### Findings
-
 [Key decisions and discoveries]
 
 ### Files Modified
-
 [Touched files]
 
 ### Open Questions
-
 [Unresolved items]
 
 ### Recommendations
-
 [Next actions]
 ```
 
