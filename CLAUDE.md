@@ -29,6 +29,7 @@ nix flake update
 - `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件を定義。
 - `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）と検索用エージェント（steering-research, doc-search）を含む。
 - `config/agents/commands/` - Claude Code のカスタムコマンド。`~/.claude/commands/` にデプロイ。`/orchestrate` コマンドで複数エージェントの sequential pipeline を実行。
+- `config/agents/skills/orchestrate/` - Claude Code の `/orchestrate` と同じ運用意図を Codex でも使えるようにした共通オーケストレーションスキル。`~/.codex/skills/` にもデプロイされる。
 - `config/agents/scripts/` - Claude Code 用のヘルパースクリプト。`~/.claude/scripts/` にデプロイ。statusline 表示用スクリプト等を含む。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
@@ -51,4 +52,4 @@ nix flake update
 1. ファイル作成。frontmatter: `description` のみ
 2. `modules/agent-skills.nix` の `agentCommands` リストに名前を追加
 
-`mkAgentEntries` ヘルパーにより `~/.claude/agents/`・`~/.claude/commands/` に自動デプロイされる。追加後 `hms` で適用。
+`mkAgentEntries` ヘルパーにより `~/.claude/agents/`・`~/.claude/commands/` に自動デプロイされる。スキルは agent-skills-nix により `~/.claude/skills/` と `~/.codex/skills/` に配布される。追加後 `hms` で適用。

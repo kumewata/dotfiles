@@ -35,7 +35,7 @@ PR 作成・レビュー、Issue 管理等の GitHub 操作時に使用する。
 
 | Skill / Command | Trigger |
 |-------|---------|
-| `/orchestrate` | 複雑な機能実装・バグ修正・リファクタリング・セキュリティレビューを自律的に行いたいとき。`/orchestrate feature "説明"`, `/orchestrate bugfix "説明"` 等。planner → reviewer → codex-review のパイプラインを自動実行する |
+| `orchestrate` / `/orchestrate` | 複雑な機能実装・バグ修正・リファクタリング・セキュリティレビューを段階的に進めたいとき。Claude Code では `/orchestrate` コマンド、Codex では `orchestrate` スキルとして使う。planner → reviewer → codex-review のパイプラインを実行する |
 | frontmatter | `.steering/` 配下や docs/ のドキュメント作成時 |
 | nix | Nix Flakes / Home Manager の設定変更時 |
 | claude-config-optimizer | CLAUDE.md, rules/, skills/, agents/ の編集・最適化時 |

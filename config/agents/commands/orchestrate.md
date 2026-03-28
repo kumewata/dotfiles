@@ -1,5 +1,5 @@
 ---
-description: Orchestrate multiple agents for complex tasks with cross-model review
+description: Orchestrate multiple agents for complex tasks with a Claude Code and Codex compatible workflow
 ---
 
 # Orchestrate Command
@@ -37,7 +37,7 @@ Example: `/orchestrate feature --with python-reviewer "Build a REST API"` become
 
 Before invoking the first agent:
 
-1. Load the **steering** skill using the Skill tool
+1. Load the **steering** skill
 2. Follow steering's Mode 1 (document creation) to create the steering directory and documents
    - 軽量モード判定は行わない — orchestrate では常に通常モード（requirements.md, design.md, tasklist.md の3ファイル）を使用する
 3. The planner agent will generate/update `requirements.md`, `design.md`, and `tasklist.md` in the steering directory
@@ -47,10 +47,14 @@ Before invoking the first agent:
 For each agent in the pipeline (except codex-review):
 
 ### 4a. Invoke the agent
-Use the Agent tool to spawn the agent with:
+Use the environment's agent mechanism to spawn the agent with:
 - The original task description
 - The handoff document from the previous agent (if any)
 - Context about the steering documents location
+
+Tool mapping:
+- Claude Code: Agent tool
+- Codex: `spawn_agent`, `send_input`, `wait_agent`
 
 ### 4b. Collect handoff
 After the agent completes, create a handoff document:
@@ -85,7 +89,7 @@ Include the handoff document in the next agent's prompt.
 
 ## Step 5: Codex Cross-Model Review
 
-After all Claude agents complete, run the Codex review:
+After all implementation/review agents complete, run the Codex review:
 
 ```bash
 codex exec -s read-only "<review-prompt>"
@@ -102,7 +106,7 @@ Construct the review prompt with:
 ### Git Diff
 [Output of git diff --staged and git diff]
 
-### Claude Agent Findings
+### Agent Findings
 
 #### [agent-name] (model)
 [Severity-tagged findings from that agent]
@@ -111,16 +115,15 @@ Construct the review prompt with:
 [Same format]
 
 ### Review Instructions
-Review the above Claude agent findings and diff comprehensively:
-1. Are there issues Claude missed?
+Review the above agent findings and diff comprehensively:
+1. Are there issues earlier phases missed?
 2. Are there contradictions or duplicates in the findings?
 3. Overall implementation quality assessment: SHIP / NEEDS WORK / BLOCKED
 ```
 
-**Failure handling**: If `codex` is not installed, not authenticated, or times out:
-- Do NOT fail the orchestration
-- Record `codex-review: SKIPPED (reason)` in the final report
-- Continue to Step 6
+**Failure handling**:
+- In Claude Code, if `codex` is not installed, not authenticated, or times out, do not fail the orchestration. Record `codex-review: SKIPPED (reason)` in the final report and continue to Step 6.
+- In Codex itself, do not shell out to nested `codex exec` unless there is a specific need. The current Codex session may perform the final review directly and record it as `codex-review: COMPLETE (in-session)`.
 
 ## Step 6: Final Orchestration Report
 
