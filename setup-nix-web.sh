@@ -182,14 +182,16 @@ fi
 
 # 4. Disable blocked Determinate Systems endpoints (403 in Claude Code Web)
 #    Determinate Nix includes /etc/nix/nix.custom.conf via !include.
-#    Override flake-registry and substituters to avoid 403 retries that
-#    add ~9 seconds per nix invocation.
-if [ -d /etc/nix ] && grep -q "determinate" /etc/nix/nix.conf 2>/dev/null; then
+#    Override flake-registry, substituters, and upgrade-nix-store-path-url
+#    to avoid 403 retries that add ~9 seconds per nix invocation.
+#    The container is ephemeral so overwriting nix.custom.conf is safe.
+if [ -d /etc/nix ] && grep -q '!include.*/nix\.custom\.conf' /etc/nix/nix.conf 2>/dev/null; then
   log "Overriding Determinate Systems endpoints in /etc/nix/nix.custom.conf..."
-  cat > /etc/nix/nix.custom.conf << 'NIXCONF'
+  cat > /etc/nix/nix.custom.conf << 'NIXCONF' || true
 flake-registry = https://channels.nixos.org/flake-registry.json
 substituters = https://cache.nixos.org/
 extra-substituters =
+upgrade-nix-store-path-url =
 NIXCONF
 fi
 
