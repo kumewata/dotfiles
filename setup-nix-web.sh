@@ -130,7 +130,7 @@ if ! command -v gh >/dev/null 2>&1; then
       # Verify checksum if possible
       gh_verified=false
       if curl -fsSL --connect-timeout 15 --max-time 30 "$GH_CHECKSUMS_URL" -o "${TMP_GH}/checksums.txt" 2>/dev/null; then
-        expected_sha256="$(grep " ${GH_TARBALL_NAME}$" "${TMP_GH}/checksums.txt" | awk '{print $1}')"
+        expected_sha256="$(grep " ${GH_TARBALL_NAME}$" "${TMP_GH}/checksums.txt" | awk '{print $1}' || true)"
         if [ -n "${expected_sha256:-}" ] && command -v sha256sum >/dev/null 2>&1; then
           actual_sha256="$(sha256sum "${TMP_GH}/gh.tar.gz" | awk '{print $1}')"
           if [ "$expected_sha256" = "$actual_sha256" ]; then
@@ -164,7 +164,7 @@ if ! command -v gh >/dev/null 2>&1; then
     trap - EXIT
   fi
 else
-  log "gh already installed: $(gh --version | head -1)"
+  log "gh already installed: $(gh --version 2>/dev/null | head -1 || echo 'version check failed')"
 fi
 
 # ── Phase 3: Clone/update dotfiles + deploy agent configs ─────

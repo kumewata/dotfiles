@@ -152,13 +152,19 @@ SETTINGS_EOF
     echo "    Merging with existing settings.json"
     local existing
     existing=$(cat "$settings_file")
-    echo "$existing" | jq --argjson new "$new_settings" '
+    if echo "$existing" | jq --argjson new "$new_settings" '
       ($new.permissions.allow // []) as $new_allow |
       (.permissions.allow // []) as $old_allow |
       ($old_allow + $new_allow | unique) as $merged_allow |
       . * $new |
       .permissions.allow = $merged_allow
-    ' > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
+    ' > "${settings_file}.tmp"; then
+      mv "${settings_file}.tmp" "$settings_file"
+    else
+      echo "    Warning: existing settings.json is invalid or could not be merged; overwriting with new settings."
+      rm -f "${settings_file}.tmp"
+      echo "$new_settings" > "$settings_file"
+    fi
   else
     echo "    Writing new settings.json"
     echo "$new_settings" > "$settings_file"
