@@ -180,7 +180,22 @@ else
     || { log "ERROR: Failed to clone dotfiles"; exit 1; }
 fi
 
-# 4. Run Home Manager switch
+# 4. Disable blocked Determinate Systems endpoints (403 in Claude Code Web)
+#    Determinate Nix includes /etc/nix/nix.custom.conf via !include.
+#    Override flake-registry, substituters, and upgrade-nix-store-path-url
+#    to avoid 403 retries that add ~9 seconds per nix invocation.
+#    The container is ephemeral so overwriting nix.custom.conf is safe.
+if [ -d /etc/nix ] && grep -q '!include.*/nix\.custom\.conf' /etc/nix/nix.conf 2>/dev/null; then
+  log "Overriding Determinate Systems endpoints in /etc/nix/nix.custom.conf..."
+  cat > /etc/nix/nix.custom.conf << 'NIXCONF' || true
+flake-registry = https://channels.nixos.org/flake-registry.json
+substituters = https://cache.nixos.org/
+extra-substituters =
+upgrade-nix-store-path-url =
+NIXCONF
+fi
+
+# 5. Run Home Manager switch
 log "Running Home Manager switch ($NIX_SYSTEM_VALUE)..."
 export NIX_SYSTEM="$NIX_SYSTEM_VALUE"
 export USER="${USER:-$(whoami)}"
@@ -191,10 +206,10 @@ nix run --impure "github:nix-community/home-manager/release-25.11" \
 
 log "Home Manager switch completed"
 
-# 5. Export environment for Claude Code
+# 6. Export environment for Claude Code
 export_env
 
-# 6. Write marker file
+# 7. Write marker file
 current_ref="$(git -C "$DOTFILES_DIR" rev-parse HEAD)"
 echo "$current_ref" > "$MARKER_FILE"
 
