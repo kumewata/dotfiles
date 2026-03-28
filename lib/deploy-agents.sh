@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib/deploy-agents.sh — Shared agent config deployment functions
 #
-# Sourced by both setup.sh and setup-nix-web.sh.
+# Sourced by both setup.sh and setup-web.sh.
 # Requires: HOME_DIR and AGENTS_DIR to be set before sourcing.
 
 if [[ -z "${HOME_DIR:-}" ]]; then

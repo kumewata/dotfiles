@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-nix-web.sh ] && ~/.claude/scripts/setup-nix-web.sh >/dev/null || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/kumewata/dotfiles/main/setup-nix-web.sh -o \"$t\" && bash \"$t\" >/dev/null; rm -f \"$t\"; }; } || echo '[setup-nix-web] hook failed' >&2",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { [ -x ~/.claude/scripts/setup-web.sh ] && ~/.claude/scripts/setup-web.sh >/dev/null || { t=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/kumewata/dotfiles/main/setup-web.sh -o \"$t\" && bash \"$t\" >/dev/null; rm -f \"$t\"; }; } || echo '[setup-web] hook failed' >&2",
             "timeout": 300
           },
           {

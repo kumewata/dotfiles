@@ -103,8 +103,8 @@ in
       executable = true;
     };
     # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
-    ".claude/scripts/setup-nix-web.sh" = {
-      source = ../setup-nix-web.sh;
+    ".claude/scripts/setup-web.sh" = {
+      source = ../setup-web.sh;
       executable = true;
     };
     # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
@@ -322,7 +322,7 @@ in
         hooks = [
           {
             type = "command";
-            command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-nix-web.sh >/dev/null || echo '[setup-nix-web] hook failed' >&2";
+            command = "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ~/.claude/scripts/setup-web.sh >/dev/null || echo '[setup-web] hook failed' >&2";
             timeout = 300;
           }
           {

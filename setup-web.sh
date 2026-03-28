@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-nix-web.sh - Lightweight bootstrap for Claude Code Web sessions
+# setup-web.sh - Lightweight bootstrap for Claude Code Web sessions
 #
 # Installs gh CLI (via tarball), deploys agent configs (via symlinks),
 # and patches nix.conf to avoid Determinate Systems 403 errors.
@@ -11,8 +11,8 @@ set -euo pipefail
 # ── Constants ──────────────────────────────────────────────────
 DOTFILES_REPO="https://github.com/kumewata/dotfiles.git"
 DOTFILES_DIR="$HOME/.dotfiles"
-MARKER_FILE="$HOME/.local/state/nix-web-setup-done"
-LOG_FILE="$HOME/.local/state/nix-web-setup.log"
+MARKER_FILE="$HOME/.local/state/web-setup-done"
+LOG_FILE="$HOME/.local/state/web-setup.log"
 GH_VERSION="2.67.0"
 
 # ── Logging ────────────────────────────────────────────────────
@@ -26,11 +26,11 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ] || [ "$(uname -s)" != "Linux" ]; then
 fi
 
 # ── Prevent parallel execution (global + project hooks may fire concurrently) ──
-LOCK_FILE="$HOME/.local/state/nix-web-setup.lock"
+LOCK_FILE="$HOME/.local/state/web-setup.lock"
 mkdir -p "$(dirname "$LOCK_FILE")"
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
-  echo "[setup-nix-web] Another instance is running — skipping" >&2
+  echo "[setup-web] Another instance is running — skipping" >&2
   exit 0
 fi
 
