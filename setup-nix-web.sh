@@ -40,7 +40,10 @@ export USER="${USER:-$(whoami)}"
 # ── Helper: export PATH to CLAUDE_ENV_FILE (with dedup guard) ──
 export_env() {
   if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
-    # Validate CLAUDE_ENV_FILE points to a safe location
+    # Validate CLAUDE_ENV_FILE points to a safe location and is not a symlink
+    if [ -L "$CLAUDE_ENV_FILE" ]; then
+      log "WARN: CLAUDE_ENV_FILE is a symlink — skipping"; return 0
+    fi
     case "$CLAUDE_ENV_FILE" in
       "$HOME"/.claude/*|/tmp/*) ;;
       *) log "WARN: CLAUDE_ENV_FILE points to unexpected path: $CLAUDE_ENV_FILE — skipping"; return 0 ;;
@@ -168,11 +171,16 @@ else
 fi
 
 # ── Phase 3: Clone/update dotfiles + deploy agent configs ─────
-if [ -d "$DOTFILES_DIR" ]; then
+if [ -d "$DOTFILES_DIR" ] && git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   log "Updating dotfiles..."
   git -C "$DOTFILES_DIR" merge --ff-only origin/main \
     || git -C "$DOTFILES_DIR" pull --ff-only \
     || log "WARN: git pull failed — proceeding with current checkout"
+elif [ -d "$DOTFILES_DIR" ]; then
+  log "WARN: $DOTFILES_DIR exists but is not a valid git repo — removing and re-cloning"
+  rm -rf "$DOTFILES_DIR"
+  git clone "$DOTFILES_REPO" "$DOTFILES_DIR" \
+    || { log "ERROR: Failed to clone dotfiles"; exit 1; }
 else
   log "Cloning dotfiles..."
   git clone "$DOTFILES_REPO" "$DOTFILES_DIR" \

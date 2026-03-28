@@ -4,6 +4,18 @@
 # Sourced by both setup.sh and setup-nix-web.sh.
 # Requires: HOME_DIR and AGENTS_DIR to be set before sourcing.
 
+if [[ -z "${HOME_DIR:-}" ]]; then
+  echo "deploy-agents.sh: HOME_DIR must be set and non-empty before sourcing this library." >&2
+  # shellcheck disable=SC2317
+  return 1 2>/dev/null || exit 1
+fi
+
+if [[ -z "${AGENTS_DIR:-}" ]]; then
+  echo "deploy-agents.sh: AGENTS_DIR must be set and non-empty before sourcing this library." >&2
+  # shellcheck disable=SC2317
+  return 1 2>/dev/null || exit 1
+fi
+
 # ── link_file ─────────────────────────────────────────────────
 # Create a symlink, replacing any existing file or link at the destination.
 link_file() {
