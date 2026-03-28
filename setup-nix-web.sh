@@ -58,7 +58,7 @@ export_env() {
 mkdir -p "$(dirname "$MARKER_FILE")" "$(dirname "$LOG_FILE")"
 
 artifacts_present() {
-  command -v gh >/dev/null 2>&1 \
+  PATH="$HOME/bin:/usr/local/bin:$PATH" command -v gh >/dev/null 2>&1 \
     && [ -f "$HOME/.claude/settings.json" ] \
     && [ -f "$HOME/.codex/rules/nix-managed.rules" ]
 }
@@ -92,13 +92,20 @@ fix_nix_conf() {
 
   if grep -q '!include.*/nix\.custom\.conf' /etc/nix/nix.conf 2>/dev/null; then
     log "Patching nix.conf: overriding Determinate Systems endpoints..."
-    cat > /etc/nix/nix.custom.conf << 'NIXCONF'
+    if ! { cat > /etc/nix/nix.custom.conf << 'NIXCONF'
 flake-registry = https://channels.nixos.org/flake-registry.json
 substituters = https://cache.nixos.org/
 upgrade-nix-store-path-url =
 NIXCONF
-    # Comment out extra-substituters in main nix.conf (appears after !include)
-    sed -i 's/^extra-substituters/#&/' /etc/nix/nix.conf
+    }; then
+      log "WARN: Failed to write /etc/nix/nix.custom.conf; skipping nix.conf patch"
+      return 0
+    fi
+    # Comment out Determinate Systems extra-substituters only (preserve unrelated ones)
+    if ! sed -i '/install\.determinate\.systems/ s/^extra-substituters/#&/' /etc/nix/nix.conf; then
+      log "WARN: Failed to patch /etc/nix/nix.conf; continuing without modification"
+      return 0
+    fi
     log "nix.conf patched"
   fi
 }
@@ -115,17 +122,40 @@ if ! command -v gh >/dev/null 2>&1; then
   esac
   if [ -n "${GH_ARCH:-}" ]; then
     GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
+    GH_CHECKSUMS_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt"
+    GH_TARBALL_NAME="gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
     TMP_GH="$(mktemp -d)"
     trap 'rm -rf "$TMP_GH"' EXIT
     if curl -fsSL --connect-timeout 15 --max-time 60 "$GH_URL" -o "${TMP_GH}/gh.tar.gz" 2>/dev/null; then
-      tar -xzf "${TMP_GH}/gh.tar.gz" -C "$TMP_GH"
-      if [ -w /usr/local/bin ]; then
-        cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" /usr/local/bin/gh
-        log "Installed gh ${GH_VERSION} to /usr/local/bin/gh"
+      # Verify checksum if possible
+      gh_verified=false
+      if curl -fsSL --connect-timeout 15 --max-time 30 "$GH_CHECKSUMS_URL" -o "${TMP_GH}/checksums.txt" 2>/dev/null; then
+        expected_sha256="$(grep " ${GH_TARBALL_NAME}$" "${TMP_GH}/checksums.txt" | awk '{print $1}')"
+        if [ -n "${expected_sha256:-}" ] && command -v sha256sum >/dev/null 2>&1; then
+          actual_sha256="$(sha256sum "${TMP_GH}/gh.tar.gz" | awk '{print $1}')"
+          if [ "$expected_sha256" = "$actual_sha256" ]; then
+            gh_verified=true
+          else
+            log "ERROR: SHA256 checksum mismatch for gh tarball; skipping install"
+          fi
+        else
+          log "WARN: Cannot verify checksum (missing sha256sum or checksum entry); installing without verification"
+          gh_verified=true
+        fi
       else
-        mkdir -p "$HOME/bin"
-        cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" "$HOME/bin/gh"
-        log "Installed gh ${GH_VERSION} to $HOME/bin/gh"
+        log "WARN: Failed to download checksums; installing without verification"
+        gh_verified=true
+      fi
+      if [ "$gh_verified" = true ]; then
+        tar -xzf "${TMP_GH}/gh.tar.gz" -C "$TMP_GH"
+        if [ -w /usr/local/bin ]; then
+          cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" /usr/local/bin/gh
+          log "Installed gh ${GH_VERSION} to /usr/local/bin/gh"
+        else
+          mkdir -p "$HOME/bin"
+          cp "${TMP_GH}/gh_${GH_VERSION}_${GH_ARCH}/bin/gh" "$HOME/bin/gh"
+          log "Installed gh ${GH_VERSION} to $HOME/bin/gh"
+        fi
       fi
     else
       log "WARN: Failed to download gh CLI"

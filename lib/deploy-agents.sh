@@ -8,7 +8,9 @@
 # Create a symlink, replacing any existing file or link at the destination.
 link_file() {
   local src="$1" dst="$2"
-  if [[ -e "$dst" || -L "$dst" ]]; then
+  if [[ -d "$dst" && ! -L "$dst" ]]; then
+    rm -rf "$dst"
+  elif [[ -e "$dst" || -L "$dst" ]]; then
     rm -f "$dst"
   fi
   ln -s "$src" "$dst"
