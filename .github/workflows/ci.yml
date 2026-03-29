@@ -24,7 +24,7 @@ jobs:
         uses: DeterminateSystems/determinate-nix-action@v3
 
       - name: Evaluate flake
-        run: nix flake check
+        run: nix flake check --impure
 
       - name: Check formatting
         run: nix fmt -- --fail-on-change
