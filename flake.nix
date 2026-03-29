@@ -31,7 +31,7 @@
         runtimeInputs = with pkgs; [
           treefmt
           nixfmt
-          nodePackages.prettier
+          prettier
           shfmt
         ];
         text = ''

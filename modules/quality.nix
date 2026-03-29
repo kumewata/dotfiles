@@ -5,7 +5,7 @@
     pkgs.pre-commit
     pkgs.treefmt
     pkgs.nixfmt
-    pkgs.nodePackages.prettier
+    pkgs.prettier
     pkgs.shfmt
     pkgs.shellcheck
   ];

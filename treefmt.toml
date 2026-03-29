@@ -1,3 +1,6 @@
+[global]
+excludes = [".git/", "result"]
+
 on-unmatched = "info"
 
 [formatter.nix]
