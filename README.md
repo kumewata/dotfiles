@@ -47,6 +47,30 @@ cp .githooks/sensitive-patterns.sample.txt .githooks/sensitive-patterns.txt
 
 必要に応じて `.githooks/sensitive-patterns.txt` を編集して、組織固有のパターンを追加する。
 
+### 5. Git SSH 署名の初期化（任意）
+
+この dotfiles では、当面 `~/.ssh/id_ed25519.pub` を Git の SSH 署名鍵として参照する。秘密鍵そのものは管理せず、Git 側の設定だけを反映する。
+
+初回は GitHub の `SSH signing keys` に公開鍵を登録してから `hms` を実行する。
+
+```bash
+# 公開鍵を確認する
+cat ~/.ssh/id_ed25519.pub
+
+# 設定適用後に署名設定を確認する
+git config --get gpg.format
+git config --get user.signingKey
+git config --get gpg.ssh.allowedSignersFile
+```
+
+署名付き commit の確認:
+
+```bash
+git log --show-signature -1
+```
+
+この設定は Git SSH 署名だけを先に導入するもので、`programs.git` の本格移行とは別タスクとして扱う。
+
 ## 日常の使い方
 
 ```bash
