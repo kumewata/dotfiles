@@ -31,13 +31,15 @@ echo "    Home: ${HOME_DIR}"
 if ! command -v gh &>/dev/null; then
   echo "==> Installing GitHub CLI (gh)..."
   GH_VERSION="2.67.0"
+  OS="$(uname -s)"
   ARCH="$(uname -m)"
-  case "$ARCH" in
-    x86_64) GH_ARCH="linux_amd64" ;;
-    aarch64) GH_ARCH="linux_arm64" ;;
-    arm64) GH_ARCH="macOS_arm64" ;;
+  case "${OS}:${ARCH}" in
+    Darwin:x86_64) GH_ARCH="macOS_amd64" ;;
+    Darwin:arm64) GH_ARCH="macOS_arm64" ;;
+    Linux:x86_64) GH_ARCH="linux_amd64" ;;
+    Linux:aarch64) GH_ARCH="linux_arm64" ;;
     *)
-      echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"
+      echo "    WARN: Unsupported platform ${OS}/${ARCH}, skipping gh install"
       GH_ARCH=""
       ;;
   esac
