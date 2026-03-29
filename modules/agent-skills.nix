@@ -110,6 +110,16 @@ in
         source = ../config/agents/scripts/credential-guard.sh;
         executable = true;
       };
+      # InstructionsLoaded hook: CLAUDE.md 読み込みログ
+      ".claude/scripts/instructions-loaded.sh" = {
+        source = ../config/agents/scripts/instructions-loaded.sh;
+        executable = true;
+      };
+      # Stop hook: タスク完了時の macOS デスクトップ通知
+      ".claude/scripts/stop-notify.sh" = {
+        source = ../config/agents/scripts/stop-notify.sh;
+        executable = true;
+      };
       # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
       ".claude/scripts/setup-web.sh" = {
         source = ../setup-web.sh;
@@ -337,6 +347,30 @@ in
                 {
                   type = "command";
                   command = ''[ "$CLAUDE_CODE_REMOTE" = "true" ] && [ -n "$CLAUDE_ENV_FILE" ] && [ -d "$HOME/.nix-profile/bin" ] && echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' >> "$CLAUDE_ENV_FILE" || true'';
+                  timeout = 5;
+                }
+              ];
+            }
+          ];
+          InstructionsLoaded = [
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = "$HOME/.claude/scripts/instructions-loaded.sh";
+                  timeout = 5;
+                }
+              ];
+            }
+          ];
+          Stop = [
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = "$HOME/.claude/scripts/stop-notify.sh";
                   timeout = 5;
                 }
               ];
