@@ -47,7 +47,15 @@
       };
       checkApp = pkgs.writeShellApplication {
         name = "check";
-        runtimeInputs = [ pkgs.pre-commit ];
+        runtimeInputs = with pkgs; [
+          pre-commit
+          treefmt
+          nixfmt
+          prettier
+          shfmt
+          shellcheck
+          ripgrep
+        ];
         text = ''
           exec pre-commit run --all-files "$@"
         '';

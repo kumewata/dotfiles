@@ -89,10 +89,21 @@ nix run .#update
 
 既存の `hms` エイリアスは互換導線として残しているが、README 上の主導線は flake apps の `switch/check/update` とする。
 
+## CI
+
+GitHub Actions の `CI` workflow は、pull request と `main` への push で次を実行する。
+
+- `nix flake check`
+- `nix fmt -- --fail-on-change`
+- `nix run .#check`
+
+ローカルで CI 相当の確認をしたい場合は、少なくとも `nix fmt -- --fail-on-change` と `nix run .#check` を実行する。
+
 ## リポジトリ構成
 
 ```
 .
+├── .github/workflows/ci.yml # GitHub Actions の最小 CI
 ├── flake.nix              # Flake エントリポイント（nixpkgs unstable + Home Manager）
 ├── flake.lock             # 依存のロックファイル
 ├── home.nix               # Home Manager メイン設定（モジュール読み込み・ユーザー情報）
