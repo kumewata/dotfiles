@@ -1,13 +1,13 @@
 ---
-title: {メモのタイトル}
-tags: [メモ, {カテゴリ}]
+title: { メモのタイトル }
+tags: [メモ, { カテゴリ }]
 use_when: >
   このドキュメントを参照すべき状況：
   - {参照すべき状況1}
   - {参照すべき状況2}
-keywords: [{キーワード1}, {キーワード2}]
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+keywords: [{ キーワード1 }, { キーワード2 }]
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # {メモのタイトル}

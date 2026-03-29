@@ -18,7 +18,7 @@ if [ -n "$CWD" ] && [ -d "$CWD/.git" ] || [ -f "$CWD/.git" ]; then
   # Check if inside a worktree (not the main working tree)
   GIT_DIR=$(git -C "$CWD" rev-parse --git-dir 2>/dev/null || true)
   if [ -n "$GIT_DIR" ] && echo "$GIT_DIR" | grep -q '/worktrees/'; then
-    WORKTREE=$(basename "$(echo "$GIT_DIR" | sed 's|/\.git/worktrees/|/|')")
+    WORKTREE=$(basename "${GIT_DIR//\/.git\/worktrees\//\/}")
   fi
 fi
 

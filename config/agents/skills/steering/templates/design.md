@@ -1,22 +1,22 @@
 ---
-title: {採用するアーキテクチャ/設計パターンを1文で}
-tags: [設計, アーキテクチャ, {技術スタック}, ...]
+title: { 採用するアーキテクチャ/設計パターンを1文で }
+tags: [設計, アーキテクチャ, { 技術スタック }, ...]
 use_when: >
   このドキュメントを参照すべき状況：
   - 実装方針の判断が必要なとき
   - コンポーネント設計の詳細が必要なとき
   - テスト・検証戦略を確認したいとき
-keywords: [{コンポーネント名}, {パターン名}]
+keywords: [{ コンポーネント名 }, { パターン名 }]
 references:
   - "{関連する GitHub Issue/PR/Discussion の URL}"
 related:
   - requirements.md
   - tasklist.md
 repos:
-  - {owner/repo}
-branch: {branch-name}
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+  - { owner/repo }
+branch: { branch-name }
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # 設計書
@@ -43,10 +43,12 @@ updated_at: {YYYY-MM-DD}
 ### 1. {コンポーネント名1}
 
 **責務**:
+
 - {責務1}
 - {責務2}
 
 **実装の要点**:
+
 - {実装時の注意点}
 - {技術的な制約}
 

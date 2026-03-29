@@ -1,0 +1,18 @@
+[global]
+excludes = [".git/", "result"]
+
+on-unmatched = "info"
+
+[formatter.nix]
+command = "nixfmt"
+includes = ["*.nix", "**/*.nix"]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = ["*.json", "**/*.json", "*.md", "**/*.md", "*.yaml", "**/*.yaml", "*.yml", "**/*.yml"]
+
+[formatter.shell]
+command = "shfmt"
+options = ["-w", "-i", "2", "-ci"]
+includes = ["*.sh", "**/*.sh", ".githooks/*.sh"]

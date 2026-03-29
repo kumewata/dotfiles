@@ -9,10 +9,13 @@ metadata:
 # Skill: Refactor Module
 
 ## Overview
+
 This skill guides AI agents in transforming monolithic Terraform configurations into reusable, maintainable modules following HashiCorp's module design principles and community best practices.
 
 ## Capability Statement
+
 The agent will analyze existing Terraform code and systematically refactor it into well-structured modules with:
+
 - Clear interface contracts (variables and outputs)
 - Proper encapsulation and abstraction
 - Versioning and documentation
@@ -20,6 +23,7 @@ The agent will analyze existing Terraform code and systematically refactor it in
 - Migration path for existing state
 
 ## Prerequisites
+
 - Existing Terraform configuration to refactor
 - Understanding of resource dependencies
 - Access to current state file (for migration planning)
@@ -27,19 +31,21 @@ The agent will analyze existing Terraform code and systematically refactor it in
 
 ## Input Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `source_directory` | string | Yes | Path to existing Terraform configuration |
-| `module_name` | string | Yes | Name for the new module |
-| `abstraction_level` | string | No | "simple", "intermediate", "advanced" (default: intermediate) |
-| `preserve_state` | boolean | Yes | Whether to maintain state compatibility |
-| `target_registry` | string | No | Target module registry (local, private, public) |
+| Parameter           | Type    | Required | Description                                                  |
+| ------------------- | ------- | -------- | ------------------------------------------------------------ |
+| `source_directory`  | string  | Yes      | Path to existing Terraform configuration                     |
+| `module_name`       | string  | Yes      | Name for the new module                                      |
+| `abstraction_level` | string  | No       | "simple", "intermediate", "advanced" (default: intermediate) |
+| `preserve_state`    | boolean | Yes      | Whether to maintain state compatibility                      |
+| `target_registry`   | string  | No       | Target module registry (local, private, public)              |
 
 ## Execution Steps
 
 ### 1. Analysis Phase
+
 ```markdown
 **Identify Refactoring Candidates**
+
 - Group resources by logical function
 - Identify repeated patterns
 - Map resource dependencies
@@ -47,6 +53,7 @@ The agent will analyze existing Terraform code and systematically refactor it in
 - Analyze variable usage patterns
 
 **Complexity Assessment**
+
 - Count resource relationships
 - Measure variable propagation depth
 - Identify cross-resource references
@@ -56,6 +63,7 @@ The agent will analyze existing Terraform code and systematically refactor it in
 ### 2. Module Design
 
 #### Interface Design
+
 ```hcl
 # Define clear input contract
 variable "network_config" {
@@ -65,7 +73,7 @@ variable "network_config" {
     availability_zones = list(string)
     enable_nat         = bool
   })
-  
+
   validation {
     condition     = can(cidrhost(var.network_config.cidr_block, 0))
     error_message = "CIDR block must be valid IPv4 CIDR."
@@ -85,13 +93,16 @@ output "private_subnet_ids" {
 ```
 
 #### Encapsulation Strategy
+
 ```markdown
 **What to Include in Module:**
+
 - Tightly coupled resources (VPC + subnets)
 - Resources with shared lifecycle
 - Configuration with clear boundaries
 
 **What to Keep Separate:**
+
 - Cross-cutting concerns (monitoring, tagging)
 - Resources with different lifecycles
 - Provider-specific configurations
@@ -100,12 +111,13 @@ output "private_subnet_ids" {
 ### 3. Code Transformation
 
 #### Before: Monolithic Configuration
+
 ```hcl
 # main.tf (monolithic)
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   enable_dns_hostnames = true
-  
+
   tags = {
     Name = "production-vpc"
     Environment = "prod"
@@ -116,7 +128,7 @@ resource "aws_subnet" "public_1" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
-  
+
   tags = {
     Name = "public-subnet-1"
     Type = "public"
@@ -127,7 +139,7 @@ resource "aws_subnet" "public_2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
-  
+
   tags = {
     Name = "public-subnet-2"
     Type = "public"
@@ -136,7 +148,7 @@ resource "aws_subnet" "public_2" {
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  
+
   tags = {
     Name = "production-igw"
   }
@@ -146,6 +158,7 @@ resource "aws_internet_gateway" "main" {
 ```
 
 #### After: Modular Structure
+
 ```hcl
 # modules/vpc/main.tf
 locals {
@@ -156,7 +169,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.cidr_block
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
-  
+
   tags = merge(
     var.tags,
     {
@@ -167,12 +180,12 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public" {
   for_each = var.create_public_subnets ? toset(var.availability_zones) : []
-  
+
   vpc_id                  = aws_vpc.main.id
   cidr_block              = cidrsubnet(var.cidr_block, 8, index(var.availability_zones, each.value))
   availability_zone       = each.value
   map_public_ip_on_launch = true
-  
+
   tags = merge(
     var.tags,
     {
@@ -185,7 +198,7 @@ resource "aws_subnet" "public" {
 resource "aws_internet_gateway" "main" {
   count  = var.create_public_subnets ? 1 : 0
   vpc_id = aws_vpc.main.id
-  
+
   tags = merge(
     var.tags,
     {
@@ -203,7 +216,7 @@ variable "name" {
 variable "cidr_block" {
   description = "CIDR block for the VPC"
   type        = string
-  
+
   validation {
     condition     = can(cidrhost(var.cidr_block, 0))
     error_message = "Must be a valid IPv4 CIDR block."
@@ -263,11 +276,11 @@ output "internet_gateway_id" {
 # Root configuration using module
 module "vpc" {
   source = "./modules/vpc"
-  
+
   name               = "production"
   cidr_block         = "10.0.0.0/16"
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  
+
   tags = {
     Environment = "production"
     ManagedBy   = "Terraform"
@@ -278,6 +291,7 @@ module "vpc" {
 ### 4. State Migration
 
 #### Generate Migration Plan
+
 ```hcl
 # migration.tf
 # Use moved blocks for state refactoring (Terraform 1.1+)
@@ -304,6 +318,7 @@ moved {
 ```
 
 #### Manual State Migration (Pre-1.1)
+
 ```bash
 # Generate state migration commands
 terraform state mv aws_vpc.main module.vpc.aws_vpc.main
@@ -318,9 +333,11 @@ terraform state mv aws_internet_gateway.main 'module.vpc.aws_internet_gateway.ma
 # VPC Module
 
 ## Overview
+
 Creates a VPC with configurable public and private subnets across multiple availability zones.
 
 ## Features
+
 - Multi-AZ subnet deployment
 - Optional NAT gateway configuration
 - VPC Flow Logs integration
@@ -330,43 +347,43 @@ Creates a VPC with configurable public and private subnets across multiple avail
 
 \`\`\`hcl
 module "vpc" {
-  source = "./modules/vpc"
-  
-  name               = "my-vpc"
-  cidr_block         = "10.0.0.0/16"
-  availability_zones = ["us-east-1a", "us-east-1b"]
-  
-  create_public_subnets  = true
-  create_private_subnets = true
-  enable_nat_gateway     = true
-  
-  tags = {
-    Environment = "production"
-  }
+source = "./modules/vpc"
+
+name = "my-vpc"
+cidr_block = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+create_public_subnets = true
+create_private_subnets = true
+enable_nat_gateway = true
+
+tags = {
+Environment = "production"
+}
 }
 \`\`\`
 
 ## Requirements
 
-| Name | Version |
-|------|---------|
+| Name      | Version  |
+| --------- | -------- |
 | terraform | >= 1.5.0 |
-| aws | ~> 5.0 |
+| aws       | ~> 5.0   |
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|----------|
-| name | Name prefix for resources | `string` | n/a | yes |
-| cidr_block | VPC CIDR block | `string` | n/a | yes |
-| availability_zones | List of AZs | `list(string)` | n/a | yes |
+| Name               | Description               | Type           | Default | Required |
+| ------------------ | ------------------------- | -------------- | ------- | -------- |
+| name               | Name prefix for resources | `string`       | n/a     | yes      |
+| cidr_block         | VPC CIDR block            | `string`       | n/a     | yes      |
+| availability_zones | List of AZs               | `list(string)` | n/a     | yes      |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| vpc_id | VPC identifier |
-| public_subnet_ids | Map of public subnet IDs |
+| Name               | Description               |
+| ------------------ | ------------------------- |
+| vpc_id             | VPC identifier            |
+| public_subnet_ids  | Map of public subnet IDs  |
 | private_subnet_ids | Map of private subnet IDs |
 
 ## Examples
@@ -407,12 +424,15 @@ my-module/
 ## Refactoring Patterns
 
 ### Pattern 1: Resource Grouping
+
 Extract related resources into cohesive modules:
+
 - Networking (VPC, Subnets, Route Tables)
 - Compute (ASG, Launch Templates, Load Balancers)
 - Data (RDS, ElastiCache, S3)
 
 ### Pattern 2: Configuration Layering
+
 ```hcl
 # Base module with defaults
 module "vpc_base" {
@@ -428,6 +448,7 @@ module "vpc_prod" {
 ```
 
 ### Pattern 3: Composition
+
 ```hcl
 # Small, focused modules
 module "vpc" {
@@ -450,6 +471,7 @@ module "application" {
 ## Common Pitfalls
 
 ### 1. Over-Abstraction
+
 ```hcl
 # ❌ Don't create overly generic modules
 variable "resources" {
@@ -466,6 +488,7 @@ variable "database_config" {
 ```
 
 ### 2. Tight Coupling
+
 ```hcl
 # ❌ Don't couple modules through direct references
 # module A
@@ -487,7 +510,9 @@ resource "aws_eip" "app" {
 ```
 
 ### 3. State Migration Errors
+
 Always test migration in non-production first:
+
 ```bash
 # Create plan to verify no changes after migration
 terraform plan -out=migration.tfplan
@@ -524,15 +549,17 @@ module "vpc" {
 - [ ] No plan differences after refactoring
 
 ## Related Skills
+
 - [Terraform code generation](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/terraform/code-generation/skills/terraform-style-guide/SKILL.md) - Style guide for the new Terraform Module
 - [Azure Verified Modules](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/terraform/code-generation/skills/azure-verified-modules/SKILL.md) - Recommended module specifications for Azure
 
 ## Resources
+
 - [Terraform Module Development](https://developer.hashicorp.com/terraform/language/modules/develop)
 - [Module Best Practices](https://developer.hashicorp.com/terraform/cloud-docs/registry/design)
 
 ## Revision History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-11-07 | Initial skill definition |
+| Version | Date       | Changes                  |
+| ------- | ---------- | ------------------------ |
+| 1.0.0   | 2025-11-07 | Initial skill definition |

@@ -42,6 +42,7 @@ my-module/
 ### Test File Components
 
 A test file contains:
+
 - **Zero to one** `test` block (configuration settings)
 - **One to many** `run` blocks (test executions)
 - **Zero to one** `variables` block (input values)
@@ -63,6 +64,7 @@ test {
 ```
 
 **Test Block Attributes:**
+
 - `parallel` - Boolean, when set to `true`, enables parallel execution for all run blocks by default (default: `false`). Individual run blocks can override this setting.
 
 ### Run Block
@@ -144,6 +146,7 @@ run "test_refresh_only" {
 ```
 
 **Plan Options Attributes:**
+
 - `mode` - `normal` (default) or `refresh-only`
 - `refresh` - Boolean, defaults to `true`
 - `replace` - List of resource addresses to replace
@@ -355,16 +358,19 @@ run "test_custom_condition_failure" {
 Test a specific module rather than the root configuration.
 
 **Supported Module Sources:**
+
 - ✅ **Local modules**: `./modules/vpc`, `../shared/networking`
 - ✅ **Public Terraform Registry**: `terraform-aws-modules/vpc/aws`
 - ✅ **Private Registry (HCP Terraform)**: `app.terraform.io/org/module/provider`
 
 **Unsupported Module Sources:**
+
 - ❌ Git repositories: `git::https://github.com/...`
 - ❌ HTTP URLs: `https://example.com/module.zip`
 - ❌ Other remote sources (S3, GCS, etc.)
 
 **Module Block Attributes:**
+
 - `source` - Module source (local path or registry address)
 - `version` - Version constraint (only for registry modules)
 
@@ -476,6 +482,7 @@ provider "aws" {
 ### State Key Management
 
 The `state_key` attribute controls which state file a run block uses. By default:
+
 - The main configuration shares a state file across all run blocks
 - Each alternate module (referenced via `module` block) gets its own state file
 
@@ -508,6 +515,7 @@ run "create_subnet" {
 Run blocks execute **sequentially by default**. Enable parallel execution with `parallel = true`.
 
 **Requirements for Parallel Execution:**
+
 - No inter-run output references (run blocks cannot reference outputs from parallel runs)
 - Different state files (via different modules or state keys)
 - Explicit `parallel = true` attribute
@@ -1105,6 +1113,7 @@ run "create_application" {
 **Issue**: Tests take too long to run
 
 **Solution**:
+
 - Use `command = plan` instead of `apply` where possible
 - Leverage mock providers
 - Use `parallel = true` for independent tests
@@ -1115,6 +1124,7 @@ run "create_application" {
 **Issue**: Multiple tests interfere with each other
 
 **Solution**:
+
 - Use different modules (automatic separate state)
 - Use `state_key` attribute to control state file sharing
 - Use mock providers for isolated testing
@@ -1612,9 +1622,9 @@ name: Terraform Tests
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   terraform-test:
@@ -1664,6 +1674,7 @@ terraform-test:
 ## References
 
 For more information:
+
 - [Terraform Testing Documentation](https://developer.hashicorp.com/terraform/language/tests)
 - [Terraform Test Command Reference](https://developer.hashicorp.com/terraform/cli/commands/test)
 - [Testing Best Practices](https://developer.hashicorp.com/terraform/language/tests/best-practices)
