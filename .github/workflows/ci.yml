@@ -13,6 +13,8 @@ jobs:
   quality:
     runs-on: macos-latest
     timeout-minutes: 20
+    env:
+      USER: ci
 
     steps:
       - name: Checkout
