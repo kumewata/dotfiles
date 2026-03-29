@@ -42,16 +42,21 @@ export_env() {
   if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     # Validate CLAUDE_ENV_FILE points to a safe location and is not a symlink
     if [ -L "$CLAUDE_ENV_FILE" ]; then
-      log "WARN: CLAUDE_ENV_FILE is a symlink — skipping"; return 0
+      log "WARN: CLAUDE_ENV_FILE is a symlink — skipping"
+      return 0
     fi
     case "$CLAUDE_ENV_FILE" in
-      "$HOME"/.claude/*|/tmp/*) ;;
-      *) log "WARN: CLAUDE_ENV_FILE points to unexpected path: $CLAUDE_ENV_FILE — skipping"; return 0 ;;
+    "$HOME"/.claude/* | /tmp/*) ;;
+    *)
+      log "WARN: CLAUDE_ENV_FILE points to unexpected path: $CLAUDE_ENV_FILE — skipping"
+      return 0
+      ;;
     esac
-    local path_line="export PATH=\"\$HOME/bin:/usr/local/bin:\$PATH\""
+    # shellcheck disable=SC2016
+    local path_line='export PATH="$HOME/bin:/usr/local/bin:$PATH"'
     # shellcheck disable=SC2016
     if ! grep -qF 'export PATH="$HOME/bin:/usr/local/bin' "$CLAUDE_ENV_FILE" 2>/dev/null; then
-      echo "$path_line" >> "$CLAUDE_ENV_FILE" 2>/dev/null || true
+      echo "$path_line" >>"$CLAUDE_ENV_FILE" 2>/dev/null || true
     fi
   fi
 }
@@ -61,17 +66,17 @@ export_env() {
 mkdir -p "$(dirname "$MARKER_FILE")" "$(dirname "$LOG_FILE")"
 
 artifacts_present() {
-  PATH="$HOME/bin:/usr/local/bin:$PATH" command -v gh >/dev/null 2>&1 \
-    && [ -f "$HOME/.claude/settings.json" ] \
-    && [ -f "$HOME/.codex/rules/nix-managed.rules" ]
+  PATH="$HOME/bin:/usr/local/bin:$PATH" command -v gh >/dev/null 2>&1 &&
+    [ -f "$HOME/.claude/settings.json" ] &&
+    [ -f "$HOME/.codex/rules/nix-managed.rules" ]
 }
 
 if [ -d "$DOTFILES_DIR" ]; then
   git -C "$DOTFILES_DIR" fetch --quiet origin 2>/dev/null || true
   remote_ref="$(git -C "$DOTFILES_DIR" rev-parse origin/main 2>/dev/null || echo "")"
-  if [ -f "$MARKER_FILE" ] && [ -n "$remote_ref" ] \
-     && [ "$(cat "$MARKER_FILE")" = "$remote_ref" ] \
-     && artifacts_present; then
+  if [ -f "$MARKER_FILE" ] && [ -n "$remote_ref" ] &&
+    [ "$(cat "$MARKER_FILE")" = "$remote_ref" ] &&
+    artifacts_present; then
     log "Already set up for commit $remote_ref — skipping"
     export_env
     exit 0
@@ -95,7 +100,8 @@ fix_nix_conf() {
 
   if grep -q '!include.*/nix\.custom\.conf' /etc/nix/nix.conf 2>/dev/null; then
     log "Patching nix.conf: overriding Determinate Systems endpoints..."
-    if ! { cat > /etc/nix/nix.custom.conf << 'NIXCONF'
+    if ! {
+      cat >/etc/nix/nix.custom.conf <<'NIXCONF'
 flake-registry = https://channels.nixos.org/flake-registry.json
 substituters = https://cache.nixos.org/
 upgrade-nix-store-path-url =
@@ -119,9 +125,12 @@ if ! command -v gh >/dev/null 2>&1; then
   log "Installing GitHub CLI ${GH_VERSION}..."
   ARCH="$(uname -m)"
   case "$ARCH" in
-    x86_64)  GH_ARCH="linux_amd64" ;;
-    aarch64) GH_ARCH="linux_arm64" ;;
-    *)       log "WARN: Unsupported architecture ${ARCH}, skipping gh install"; GH_ARCH="" ;;
+  x86_64) GH_ARCH="linux_amd64" ;;
+  aarch64) GH_ARCH="linux_arm64" ;;
+  *)
+    log "WARN: Unsupported architecture ${ARCH}, skipping gh install"
+    GH_ARCH=""
+    ;;
   esac
   if [ -n "${GH_ARCH:-}" ]; then
     GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
@@ -173,18 +182,24 @@ fi
 # ── Phase 3: Clone/update dotfiles + deploy agent configs ─────
 if [ -d "$DOTFILES_DIR" ] && git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   log "Updating dotfiles..."
-  git -C "$DOTFILES_DIR" merge --ff-only origin/main \
-    || git -C "$DOTFILES_DIR" pull --ff-only \
-    || log "WARN: git pull failed — proceeding with current checkout"
+  git -C "$DOTFILES_DIR" merge --ff-only origin/main ||
+    git -C "$DOTFILES_DIR" pull --ff-only ||
+    log "WARN: git pull failed — proceeding with current checkout"
 elif [ -d "$DOTFILES_DIR" ]; then
   log "WARN: $DOTFILES_DIR exists but is not a valid git repo — removing and re-cloning"
   rm -rf "$DOTFILES_DIR"
-  git clone "$DOTFILES_REPO" "$DOTFILES_DIR" \
-    || { log "ERROR: Failed to clone dotfiles"; exit 1; }
+  git clone "$DOTFILES_REPO" "$DOTFILES_DIR" ||
+    {
+      log "ERROR: Failed to clone dotfiles"
+      exit 1
+    }
 else
   log "Cloning dotfiles..."
-  git clone "$DOTFILES_REPO" "$DOTFILES_DIR" \
-    || { log "ERROR: Failed to clone dotfiles"; exit 1; }
+  git clone "$DOTFILES_REPO" "$DOTFILES_DIR" ||
+    {
+      log "ERROR: Failed to clone dotfiles"
+      exit 1
+    }
 fi
 
 HOME_DIR="$HOME"
@@ -207,7 +222,7 @@ log "Agent configs deployed"
 export_env
 
 current_ref="$(git -C "$DOTFILES_DIR" rev-parse HEAD)"
-echo "$current_ref" > "$MARKER_FILE"
+echo "$current_ref" >"$MARKER_FILE"
 
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))

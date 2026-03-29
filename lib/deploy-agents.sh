@@ -4,13 +4,13 @@
 # Sourced by both setup.sh and setup-web.sh.
 # Requires: HOME_DIR and AGENTS_DIR to be set before sourcing.
 
-if [[ -z "${HOME_DIR:-}" ]]; then
+if [[ -z ${HOME_DIR:-} ]]; then
   echo "deploy-agents.sh: HOME_DIR must be set and non-empty before sourcing this library." >&2
   # shellcheck disable=SC2317
   return 1 2>/dev/null || exit 1
 fi
 
-if [[ -z "${AGENTS_DIR:-}" ]]; then
+if [[ -z ${AGENTS_DIR:-} ]]; then
   echo "deploy-agents.sh: AGENTS_DIR must be set and non-empty before sourcing this library." >&2
   # shellcheck disable=SC2317
   return 1 2>/dev/null || exit 1
@@ -20,9 +20,9 @@ fi
 # Create a symlink, replacing any existing file or link at the destination.
 link_file() {
   local src="$1" dst="$2"
-  if [[ -d "$dst" && ! -L "$dst" ]]; then
+  if [[ -d $dst && ! -L $dst ]]; then
     rm -rf "$dst"
-  elif [[ -e "$dst" || -L "$dst" ]]; then
+  elif [[ -e $dst || -L $dst ]]; then
     rm -f "$dst"
   fi
   ln -s "$src" "$dst"
@@ -43,44 +43,44 @@ deploy_agent_configs() {
 
   echo "==> Agent definitions"
   for f in "${AGENTS_DIR}/definitions/"*.md; do
-    [[ -f "$f" ]] || continue
+    [[ -f $f ]] || continue
     link_file "$f" "${HOME_DIR}/.claude/agents/$(basename "$f")"
   done
 
   echo "==> Commands"
   for f in "${AGENTS_DIR}/commands/"*.md; do
-    [[ -f "$f" ]] || continue
+    [[ -f $f ]] || continue
     link_file "$f" "${HOME_DIR}/.claude/commands/$(basename "$f")"
   done
 
   echo "==> Rules"
   for f in "${AGENTS_DIR}/rules/"*.md; do
-    [[ -f "$f" ]] || continue
+    [[ -f $f ]] || continue
     link_file "$f" "${HOME_DIR}/.claude/rules/$(basename "$f")"
   done
 
   echo "==> Scripts"
   for f in "${AGENTS_DIR}/scripts/"*; do
-    [[ -f "$f" ]] || continue
+    [[ -f $f ]] || continue
     link_file "$f" "${HOME_DIR}/.claude/scripts/$(basename "$f")"
     chmod +x "${HOME_DIR}/.claude/scripts/$(basename "$f")"
   done
 
   echo "==> Skills (Claude Code)"
   for d in "${AGENTS_DIR}/skills/"*/; do
-    [[ -d "$d" ]] || continue
+    [[ -d $d ]] || continue
     local name
     name="$(basename "$d")"
-    [[ "$name" == ".system" ]] && continue
+    [[ $name == ".system" ]] && continue
     link_file "$d" "${HOME_DIR}/.claude/skills/${name}"
   done
 
   echo "==> Skills (Codex)"
   for d in "${AGENTS_DIR}/skills/"*/; do
-    [[ -d "$d" ]] || continue
+    [[ -d $d ]] || continue
     local name
     name="$(basename "$d")"
-    [[ "$name" == ".system" ]] && continue
+    [[ $name == ".system" ]] && continue
     link_file "$d" "${HOME_DIR}/.codex/skills/${name}"
   done
 }
@@ -95,7 +95,8 @@ deploy_settings_json() {
   local settings_file="${HOME_DIR}/.claude/settings.json"
 
   local new_settings
-  new_settings=$(cat <<'SETTINGS_EOF'
+  new_settings=$(
+    cat <<'SETTINGS_EOF'
 {
   "statusLine": {"type": "command", "command": "~/.claude/scripts/statusline.sh"},
   "enableAllProjectMcpServers": false,
@@ -158,9 +159,9 @@ deploy_settings_json() {
   }
 }
 SETTINGS_EOF
-)
+  )
 
-  if [[ -f "$settings_file" ]] && command -v jq &>/dev/null; then
+  if [[ -f $settings_file ]] && command -v jq &>/dev/null; then
     echo "    Merging with existing settings.json"
     local existing
     existing=$(cat "$settings_file")
@@ -170,16 +171,16 @@ SETTINGS_EOF
       ($old_allow + $new_allow | unique) as $merged_allow |
       . * $new |
       .permissions.allow = $merged_allow
-    ' > "${settings_file}.tmp"; then
+    ' >"${settings_file}.tmp"; then
       mv "${settings_file}.tmp" "$settings_file"
     else
       echo "    Warning: existing settings.json is invalid or could not be merged; overwriting with new settings."
       rm -f "${settings_file}.tmp"
-      echo "$new_settings" > "$settings_file"
+      echo "$new_settings" >"$settings_file"
     fi
   else
     echo "    Writing new settings.json"
-    echo "$new_settings" > "$settings_file"
+    echo "$new_settings" >"$settings_file"
   fi
 }
 
@@ -188,7 +189,7 @@ SETTINGS_EOF
 # Uses cat > (overwrite, not append) for idempotency.
 deploy_codex_rules() {
   echo "==> Codex CLI rules"
-  cat > "${HOME_DIR}/.codex/rules/nix-managed.rules" <<'CODEX_EOF'
+  cat >"${HOME_DIR}/.codex/rules/nix-managed.rules" <<'CODEX_EOF'
 # ── allow ──
 prefix_rule(pattern=["git", "status"], decision="allow")
 prefix_rule(pattern=["git", "diff"], decision="allow")

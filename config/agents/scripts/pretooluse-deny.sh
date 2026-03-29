@@ -27,7 +27,7 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null) || {
   echo "pretooluse-deny.sh: failed to parse input" >&2
   exit 2
 }
-[[ -z "$COMMAND" ]] && exit 0
+[[ -z $COMMAND ]] && exit 0
 
 # curl/wget を含まないコマンドはパススルー
 # パス付き（/usr/bin/curl）、env/command 経由、パイプ内も検出

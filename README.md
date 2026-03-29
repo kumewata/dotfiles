@@ -121,15 +121,15 @@ imports = [
 
 ## シェルエイリアス一覧
 
-| エイリアス | コマンド |
-|---|---|
-| `hms` | `nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default` |
-| `ll` | `ls -l` |
-| `co` | `git checkout` |
-| `br` | `git branch` |
-| `st` | `git status` |
-| `gif` | `git diff` |
-| `gifs` | `git diff --staged` |
-| `gil` | `git pull` |
-| `cm` | `git commit` |
-| `pn` | `pnpm` |
+| エイリアス | コマンド                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| `hms`      | `nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default` |
+| `ll`       | `ls -l`                                                                                        |
+| `co`       | `git checkout`                                                                                 |
+| `br`       | `git branch`                                                                                   |
+| `st`       | `git status`                                                                                   |
+| `gif`      | `git diff`                                                                                     |
+| `gifs`     | `git diff --staged`                                                                            |
+| `gil`      | `git pull`                                                                                     |
+| `cm`       | `git commit`                                                                                   |
+| `pn`       | `pnpm`                                                                                         |

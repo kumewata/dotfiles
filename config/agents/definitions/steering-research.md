@@ -56,6 +56,7 @@ git remote get-url origin
 ユーザーの質問（例: 「テスト計画の詳細が知りたい」）と `use_when` の記述をマッチング。
 
 Grep ツールを使用:
+
 - pattern: `use_when:`
 - path: `~/.local/state/steering/<owner>--<repo>/`
 
@@ -64,12 +65,14 @@ Grep ツールを使用:
 **ステップ2**: タグ検索
 
 Grep ツールを使用:
+
 - pattern: `^tags:.*設計`
 - path: `~/.local/state/steering/<owner>--<repo>/`
 
 **ステップ3**: キーワード検索
 
 Grep ツールを使用:
+
 - pattern: `^keywords:.*Nix`
 - path: `~/.local/state/steering/<owner>--<repo>/`
 
@@ -78,6 +81,7 @@ Grep ツールを使用:
 Front Matter でマッチしなかった場合、本文を検索:
 
 Grep ツールを使用:
+
 - pattern: `検索キーワード`
 - path: `~/.local/state/steering/<owner>--<repo>/`
 
@@ -129,6 +133,7 @@ Grep ツールを使用:
 ユーザー: 「認証機能の要件はどこ？」
 
 検索手順:
+
 - リポジトリ特定 → ベースディレクトリ確定
 - Grep: pattern=`^keywords:.*認証`, path=ベースディレクトリ
 - Grep: pattern=`^tags:.*要件`, path=ベースディレクトリ
@@ -141,6 +146,7 @@ Grep ツールを使用:
 ユーザー: 「ストレージサービスのコンポーネント設計は？」
 
 検索手順:
+
 - Grep: pattern=`^keywords:.*StorageService`, path=ベースディレクトリ
 - Grep: pattern=`^tags:.*設計`, path=ベースディレクトリ
 - Grep: pattern=`use_when:.*コンポーネント`, path=ベースディレクトリ
@@ -152,6 +158,7 @@ Grep ツールを使用:
 ユーザー: 「今どのプロジェクトが進行中？」
 
 検索手順:
+
 - Grep: pattern=`^status:.*in.progress`, path=ベースディレクトリ
 - Grep: pattern=`^completion:`, path=ベースディレクトリ
 

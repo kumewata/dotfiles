@@ -19,7 +19,13 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      home-manager,
+      ...
+    }:
     let
       # --impure で実行時のシステムを検出（デフォルトは aarch64-darwin）
       nixSystem = builtins.getEnv "NIX_SYSTEM";
@@ -39,10 +45,14 @@
         modules = [ ./home.nix ];
       };
 
-    in {
+    in
+    {
       homeConfigurations."kumewataru" = mkHome;
 
       # 互換性のためのエイリアス
       homeConfigurations."default" = mkHome;
+
+      # nix fmt で treefmt を使用（treefmt.toml を自動検出）
+      formatter.${system} = pkgs.treefmt;
     };
 }

@@ -1,23 +1,23 @@
 ---
-title: {機能の概要を1文で}
-tags: [要件, スコープ, {カテゴリ}, ...]
+title: { 機能の概要を1文で }
+tags: [要件, スコープ, { カテゴリ }, ...]
 use_when: >
   このドキュメントを参照すべき状況：
   - 実装対象の機能を確認したいとき
   - ユーザー要件や受け入れ条件を明確にしたいとき
   - スコープの確認が必要なとき
   - ビジネス価値や成功指標を理解したいとき
-keywords: [{固有名詞}, {API名}, {技術名}]
+keywords: [{ 固有名詞 }, { API名 }, { 技術名 }]
 references:
   - "{関連する GitHub Issue/PR/Discussion の URL}"
 related:
   - design.md
   - tasklist.md
 repos:
-  - {owner/repo}
-branch: {branch-name}
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+  - { owner/repo }
+branch: { branch-name }
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # 要求内容
@@ -33,21 +33,25 @@ updated_at: {YYYY-MM-DD}
 ## 実装対象の機能
 
 ### 1. {機能名1}
+
 - {具体的な機能説明}
 - {ユーザーができるようになること}
 
 ### 2. {機能名2}
+
 - {具体的な機能説明}
 - {ユーザーができるようになること}
 
 ## 受け入れ条件
 
 ### {機能名1}
+
 - [ ] {検証可能な条件1}
 - [ ] {検証可能な条件2}
 - [ ] {検証可能な条件3}
 
 ### {機能名2}
+
 - [ ] {検証可能な条件1}
 - [ ] {検証可能な条件2}
 

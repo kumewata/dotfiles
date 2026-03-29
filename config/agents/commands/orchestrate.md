@@ -9,6 +9,7 @@ Orchestrate multiple specialized agents for this complex task: $ARGUMENTS
 ## Step 1: Parse Arguments
 
 Parse the arguments to determine:
+
 - **Workflow type**: `feature`, `bugfix`, `refactor`, `security`, or `custom`
 - **Additional agents** (optional): `--with agent1,agent2` to append domain-specific reviewers
 - **Task description**: The remaining text
@@ -47,44 +48,56 @@ Before invoking the first agent:
 For each agent in the pipeline (except codex-review):
 
 ### 4a. Invoke the agent
+
 Use the environment's agent mechanism to spawn the agent with:
+
 - The original task description
 - The handoff document from the previous agent (if any)
 - Context about the steering documents location
 
 Tool mapping:
+
 - Claude Code: Agent tool
 - Codex: `spawn_agent`, `send_input`, `wait_agent`
 
 ### 4b. Collect handoff
+
 After the agent completes, create a handoff document:
 
 ```markdown
 ## HANDOFF: [previous-agent] → [next-agent]
 
 ### Context
+
 [Summary of what was done]
 
 ### Findings
+
 [Key discoveries or decisions]
 
 ### Files Modified
+
 [List of files touched]
 
 ### Open Questions
+
 [Unresolved items for next agent]
 
 ### Recommendations
+
 [Suggested next steps]
 ```
 
 ### 4c. Update steering tasklist
+
 Each agent completes a phase of work. **必ず** steering の tasklist.md を更新する:
+
 - 完了したタスクを `[x]` に更新
 - 新たに発見されたタスクがあれば追加
 - completion % を更新
 
 ### 4d. Pass to next agent
+
 Include the handoff document in the next agent's prompt.
 
 ## Step 5: Codex Cross-Model Review
@@ -101,27 +114,34 @@ Construct the review prompt with:
 ## Codex Cross-Model Review Request
 
 ### Task
+
 [The original task description]
 
 ### Git Diff
+
 [Output of git diff --staged and git diff]
 
 ### Agent Findings
 
 #### [agent-name] (model)
+
 [Severity-tagged findings from that agent]
 
 #### [agent-name] (model)
+
 [Same format]
 
 ### Review Instructions
+
 Review the above agent findings and diff comprehensively:
+
 1. Are there issues earlier phases missed?
 2. Are there contradictions or duplicates in the findings?
 3. Overall implementation quality assessment: SHIP / NEEDS WORK / BLOCKED
 ```
 
 **Failure handling**:
+
 - In Claude Code, if `codex` is not installed, not authenticated, or times out, do not fail the orchestration. Record `codex-review: SKIPPED (reason)` in the final report and continue to Step 6.
 - In Codex itself, do not shell out to nested `codex exec` unless there is a specific need. The current Codex session may perform the final review directly and record it as `codex-review: COMPLETE (in-session)`.
 
@@ -133,6 +153,7 @@ Generate the final report:
 # Orchestration Report
 
 ## Overview
+
 - **Workflow**: [type]
 - **Task**: [description]
 - **Pipeline**: [agent → agent → ... → codex-review]
@@ -140,31 +161,37 @@ Generate the final report:
 ## Agent Results
 
 ### [Agent Name] (Phase N)
+
 **Status**: Complete
 **Key Findings**:
+
 - [Finding 1]
 - [Finding 2]
 
 **Files Changed**:
+
 - [file list]
 
 ### Codex Cross-Model Review
+
 **Status**: Complete / SKIPPED (reason)
 **Assessment**: SHIP / NEEDS WORK / BLOCKED
 **Additional Findings**:
+
 - [Issues Claude missed, if any]
 
 ## Summary
 
-| Agent | Status | Issues Found |
-|-------|--------|-------------|
-| planner | ✓ | — |
-| tdd-guide | ✓ | 2 |
-| code-reviewer | ✓ | 3 HIGH, 1 MEDIUM |
-| security-reviewer | ✓ | 0 CRITICAL |
-| codex-review | ✓ | 1 additional |
+| Agent             | Status | Issues Found     |
+| ----------------- | ------ | ---------------- |
+| planner           | ✓      | —                |
+| tdd-guide         | ✓      | 2                |
+| code-reviewer     | ✓      | 3 HIGH, 1 MEDIUM |
+| security-reviewer | ✓      | 0 CRITICAL       |
+| codex-review      | ✓      | 1 additional     |
 
 ## Recommendation
+
 **SHIP** / **NEEDS WORK** / **BLOCKED**
 
 [Rationale for recommendation based on aggregate findings]

@@ -9,10 +9,9 @@
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-AGENTS_DIR="${DOTFILES_DIR}/config/agents"
 
 # ホームディレクトリの検出
-if [[ -n "${HOME:-}" ]]; then
+if [[ -n ${HOME:-} ]]; then
   HOME_DIR="$HOME"
 elif [[ "$(uname)" == "Darwin" ]]; then
   HOME_DIR="/Users/$(whoami)"
@@ -33,12 +32,15 @@ if ! command -v gh &>/dev/null; then
   GH_VERSION="2.67.0"
   ARCH="$(uname -m)"
   case "$ARCH" in
-    x86_64)  GH_ARCH="linux_amd64" ;;
-    aarch64) GH_ARCH="linux_arm64" ;;
-    arm64)   GH_ARCH="macOS_arm64" ;;
-    *)       echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"; GH_ARCH="" ;;
+  x86_64) GH_ARCH="linux_amd64" ;;
+  aarch64) GH_ARCH="linux_arm64" ;;
+  arm64) GH_ARCH="macOS_arm64" ;;
+  *)
+    echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"
+    GH_ARCH=""
+    ;;
   esac
-  if [[ -n "${GH_ARCH:-}" ]]; then
+  if [[ -n ${GH_ARCH:-} ]]; then
     GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
     TMP_GH="$(mktemp -d)"
     if curl -fsSL "$GH_URL" -o "${TMP_GH}/gh.tar.gz" 2>/dev/null; then
@@ -105,7 +107,7 @@ else
       groupadd -f nixbld 2>/dev/null || true
       useradd -r -g nixbld -d /var/empty -s /sbin/nologin nixbld1 2>/dev/null || true
       mkdir -p "${HOME_DIR}/.config/nix"
-      cat > "${HOME_DIR}/.config/nix/nix.conf" << 'NIXCONF'
+      cat >"${HOME_DIR}/.config/nix/nix.conf" <<'NIXCONF'
 build-users-group =
 experimental-features = nix-command flakes pipe-operators
 NIXCONF
@@ -119,8 +121,8 @@ NIXCONF
         # 非 root の場合も experimental-features を有効化
         if [[ "$(whoami)" != "root" ]]; then
           mkdir -p "${HOME_DIR}/.config/nix"
-          grep -q "experimental-features" "${HOME_DIR}/.config/nix/nix.conf" 2>/dev/null || \
-            echo "experimental-features = nix-command flakes pipe-operators" >> "${HOME_DIR}/.config/nix/nix.conf"
+          grep -q "experimental-features" "${HOME_DIR}/.config/nix/nix.conf" 2>/dev/null ||
+            echo "experimental-features = nix-command flakes pipe-operators" >>"${HOME_DIR}/.config/nix/nix.conf"
         fi
       fi
     else
@@ -136,14 +138,14 @@ fi
 # Phase 3: Nix Home Manager でデプロイ（成功すれば exit）
 # ════════════════════════════════════════════════════════════════
 
-if [[ "$NIX_INSTALLED" == "true" ]]; then
+if [[ $NIX_INSTALLED == "true" ]]; then
   echo ""
   echo "==> Deploying via Nix Home Manager..."
 
   ARCH="$(uname -m)"
   case "$(uname -s)" in
-    Darwin) export NIX_SYSTEM="${ARCH}-darwin" ;;
-    Linux)  export NIX_SYSTEM="${ARCH}-linux" ;;
+  Darwin) export NIX_SYSTEM="${ARCH}-darwin" ;;
+  Linux) export NIX_SYSTEM="${ARCH}-linux" ;;
   esac
   export USER="${USER:-$(whoami)}"
 

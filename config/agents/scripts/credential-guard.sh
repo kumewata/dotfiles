@@ -24,7 +24,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '
   exit 2
 }
 
-[[ -z "$FILE_PATH" ]] && exit 0
+[[ -z $FILE_PATH ]] && exit 0
 
 BASENAME=$(basename "$FILE_PATH")
 

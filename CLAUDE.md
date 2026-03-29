@@ -12,6 +12,12 @@ This is a macOS (Apple Silicon) dotfiles repo managed with **Nix Flakes** and **
 # Apply configuration changes (defined as shell alias `hms`)
 nix run --impure github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default
 
+# Format the repository
+nix fmt
+
+# Run the local quality gate
+pre-commit run --all-files
+
 # Update flake inputs
 nix flake update
 ```
@@ -19,9 +25,12 @@ nix flake update
 ## Architecture
 
 - `flake.nix` - Flake entrypoint. Targets `aarch64-darwin`, uses nixpkgs unstable + home-manager.
+- `treefmt.toml` - Repository formatter rules used by `nix fmt` and `pre-commit`.
+- `.pre-commit-config.yaml` - Local quality gate definition (treefmt + shellcheck).
 - `home.nix` - Main Home Manager config. Imports all modules from `modules/`. Defines user identity and base packages.
 - `modules/` - Modular config split by concern:
   - `packages.nix` - CLI tools installed via Nix (ripgrep, fd, etc.)
+  - `quality.nix` - Local quality toolchain (treefmt, pre-commit, shellcheck, prettier, shfmt, nixfmt).
   - `shell.nix` - Zsh config with Oh My Zsh, shell aliases, and `initExtra` scripts (mise, gcloud, Java, etc.)
   - `git.nix` - Git の設定（gitignore 等）。
   - `agent-skills.nix` - エージェント関連の統一管理モジュール。[agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) によるスキルデプロイ（`~/.claude/skills/`, `~/.codex/skills/`）に加え、エージェント定義・コマンド・ルール・スクリプトのデプロイ、Claude Code グローバル設定（`~/.claude/settings.json`）、Codex CLI ルール（`~/.codex/rules/`）も管理。
@@ -45,10 +54,12 @@ nix flake update
 エージェント定義やコマンドの追加は2ステップ:
 
 **エージェント定義** (`config/agents/definitions/<name>.md`):
+
 1. ファイル作成。frontmatter: `name`, `description`, `tools`, `model`
 2. `modules/agent-skills.nix` の `agentDefinitions` リストに名前を追加
 
 **コマンド** (`config/agents/commands/<name>.md`):
+
 1. ファイル作成。frontmatter: `description` のみ
 2. `modules/agent-skills.nix` の `agentCommands` リストに名前を追加
 
