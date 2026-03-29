@@ -42,7 +42,7 @@
         name = "switch";
         runtimeInputs = [ home-manager.packages.${system}.home-manager ];
         text = ''
-          exec home-manager switch --impure --flake "$PWD#default" "$@"
+          exec home-manager switch --impure --flake "${./.}#default" "$@"
         '';
       };
       checkApp = pkgs.writeShellApplication {
@@ -54,7 +54,6 @@
       };
       updateApp = pkgs.writeShellApplication {
         name = "update";
-        runtimeInputs = [ pkgs.nix ];
         text = ''
           exec nix flake update "$@"
         '';
