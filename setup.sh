@@ -33,10 +33,13 @@ if ! command -v gh &>/dev/null; then
   GH_VERSION="2.67.0"
   ARCH="$(uname -m)"
   case "$ARCH" in
-    x86_64)  GH_ARCH="linux_amd64" ;;
+    x86_64) GH_ARCH="linux_amd64" ;;
     aarch64) GH_ARCH="linux_arm64" ;;
-    arm64)   GH_ARCH="macOS_arm64" ;;
-    *)       echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"; GH_ARCH="" ;;
+    arm64) GH_ARCH="macOS_arm64" ;;
+    *)
+      echo "    WARN: Unsupported architecture ${ARCH}, skipping gh install"
+      GH_ARCH=""
+      ;;
   esac
   if [[ -n "${GH_ARCH:-}" ]]; then
     GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
@@ -105,7 +108,7 @@ else
       groupadd -f nixbld 2>/dev/null || true
       useradd -r -g nixbld -d /var/empty -s /sbin/nologin nixbld1 2>/dev/null || true
       mkdir -p "${HOME_DIR}/.config/nix"
-      cat > "${HOME_DIR}/.config/nix/nix.conf" << 'NIXCONF'
+      cat >"${HOME_DIR}/.config/nix/nix.conf" <<'NIXCONF'
 build-users-group =
 experimental-features = nix-command flakes pipe-operators
 NIXCONF
@@ -119,8 +122,8 @@ NIXCONF
         # 非 root の場合も experimental-features を有効化
         if [[ "$(whoami)" != "root" ]]; then
           mkdir -p "${HOME_DIR}/.config/nix"
-          grep -q "experimental-features" "${HOME_DIR}/.config/nix/nix.conf" 2>/dev/null || \
-            echo "experimental-features = nix-command flakes pipe-operators" >> "${HOME_DIR}/.config/nix/nix.conf"
+          grep -q "experimental-features" "${HOME_DIR}/.config/nix/nix.conf" 2>/dev/null ||
+            echo "experimental-features = nix-command flakes pipe-operators" >>"${HOME_DIR}/.config/nix/nix.conf"
         fi
       fi
     else
@@ -143,7 +146,7 @@ if [[ "$NIX_INSTALLED" == "true" ]]; then
   ARCH="$(uname -m)"
   case "$(uname -s)" in
     Darwin) export NIX_SYSTEM="${ARCH}-darwin" ;;
-    Linux)  export NIX_SYSTEM="${ARCH}-linux" ;;
+    Linux) export NIX_SYSTEM="${ARCH}-linux" ;;
   esac
   export USER="${USER:-$(whoami)}"
 

@@ -1,15 +1,15 @@
 ---
-title: {タスクのタイトル}
-tags: [タスク管理, {プロジェクト名}, {フェーズ}]
+title: { タスクのタイトル }
+tags: [タスク管理, { プロジェクト名 }, { フェーズ }]
 use_when: >
   このドキュメントを参照すべき状況：
   - {タスク進捗を確認したいとき}
   - {次のタスクを確認したいとき}
-keywords: [{プロジェクト名}, {主要タスク名}]
-status: pending  # pending, in-progress, completed
+keywords: [{ プロジェクト名 }, { 主要タスク名 }]
+status: pending # pending, in-progress, completed
 completion: 0%
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # {タスクのタイトル}

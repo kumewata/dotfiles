@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# pre-commit hook: Detect company-specific or sensitive information in staged files.
+# Sensitive information checker used by the repo's pre-commit hook.
 # Local patterns are defined in .githooks/sensitive-patterns.txt
 # (Rust regex, one per line, # for comments).
 set -euo pipefail
@@ -20,16 +20,16 @@ fi
 # Build combined pattern from file (skip blank lines and comments)
 combined=""
 while IFS= read -r line; do
-  line="${line%%#*}"          # strip inline comments
-  line="${line#"${line%%[![:space:]]*}"}"  # trim leading whitespace
-  line="${line%"${line##*[![:space:]]}"}"  # trim trailing whitespace
+  line="${line%%#*}"                      # strip inline comments
+  line="${line#"${line%%[![:space:]]*}"}" # trim leading whitespace
+  line="${line%"${line##*[![:space:]]}"}" # trim trailing whitespace
   [[ -z "$line" ]] && continue
   if [[ -z "$combined" ]]; then
     combined="$line"
   else
     combined="$combined|$line"
   fi
-done < "$PATTERN_FILE"
+done <"$PATTERN_FILE"
 
 if [[ -z "$combined" ]]; then
   exit 0
@@ -56,7 +56,7 @@ while IFS= read -r file; do
   [[ "$file" == ".githooks/sensitive-patterns.sample.txt" ]] && continue
 
   # Use git show to read the staged version, pipe to rg
-  if git show ":$file" 2>/dev/null | "$RG" -i -n "$combined" > /dev/null 2>&1; then
+  if git show ":$file" 2>/dev/null | "$RG" -i -n "$combined" >/dev/null 2>&1; then
     if [[ $found -eq 0 ]]; then
       echo "=== Sensitive information detected in staged files ==="
       echo ""

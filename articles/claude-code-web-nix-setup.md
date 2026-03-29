@@ -85,6 +85,7 @@ dotfiles/
 ```
 
 **ポイント**:
+
 - `timeout: 300`（5分）: Nix のインストールと Home Manager の初回実行には時間がかかるため、十分なタイムアウトを設定します
 - `CLAUDE_CODE_REMOTE` ガードにより、ローカル macOS では何も実行しません
 - 2段階フォールバック: ローカルにスクリプトがあれば直接実行、なければ GitHub からダウンロード
@@ -93,6 +94,7 @@ dotfiles/
 ### 2. セットアップスクリプト（setup-nix-web.sh）
 
 スクリプトの設計上のポイントは3つです:
+
 - **CLAUDE_CODE_REMOTE によるガード**: Claude Code Web 環境でのみ実行
 - **冪等性**: マーカーファイルにより、同じコミットに対して二度セットアップしない
 - **CLAUDE_ENV_FILE による PATH 引き継ぎ**: Claude Code セッション内の Bash ツールで Nix パッケージを使えるようにする
@@ -146,6 +148,7 @@ fi
 ```
 
 2段階のフォールバック構成です:
+
 - **Method A**: [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer) — Flakes がデフォルトで有効
 - **Method B**: nixos.org 公式 tarball — `--no-daemon`（シングルユーザーモード）+ experimental features 手動設定
 
@@ -212,6 +215,7 @@ export_env() {
 ```
 
 **ポイント**:
+
 - `NIX_SYSTEM` 環境変数でプラットフォームを検出。未設定時は `aarch64-darwin`（macOS Apple Silicon）をデフォルトにします
 - `builtins.getEnv "USER"` でユーザー名を動的解決。macOS では自分のユーザー名、Claude Code Web では `root` になります
 - `--impure` フラグが必要です（`builtins.getEnv` は pure evaluation では使えない）
@@ -302,6 +306,7 @@ chmod +x setup-nix-web.sh
 `<your-user>/<your-dotfiles>` を自分の dotfiles リポジトリに置き換えてください。
 
 **実行フロー**:
+
 1. `CLAUDE_CODE_REMOTE != true`（ローカル macOS）→ 何もしない
 2. `~/.claude/scripts/setup-nix-web.sh` が存在（Home Manager 適用済み）→ ローカルスクリプトを実行
 3. スクリプトが存在しない（初回セッション）→ GitHub からダウンロードして実行
@@ -363,12 +368,12 @@ Home Manager で `~/.claude/settings.json` にグローバルな SessionStart ho
 
 実際に dotfiles 以外のリポジトリ（Obsidian vault）に方法1 の hook を追加し、Claude Code Web で開いて検証しました。
 
-| # | 確認項目 | 結果 | 詳細 |
-|---|---------|------|------|
-| 1 | ガード条件 | OK | `CLAUDE_CODE_REMOTE` + `uname -s` の二重ガードが正しく動作 |
-| 2 | hook 自動実行 | OK | コミット `0f62519` で 68秒でセットアップ完了 |
-| 3 | PATH 引き継ぎ | OK | `nix 2.28.3`、`fd`・`rg` ともに `/root/.nix-profile/bin/` に配置 |
-| 4 | 冪等性マーカー | OK | `0f62519f...` が記録済み |
+| #   | 確認項目       | 結果 | 詳細                                                             |
+| --- | -------------- | ---- | ---------------------------------------------------------------- |
+| 1   | ガード条件     | OK   | `CLAUDE_CODE_REMOTE` + `uname -s` の二重ガードが正しく動作       |
+| 2   | hook 自動実行  | OK   | コミット `0f62519` で 68秒でセットアップ完了                     |
+| 3   | PATH 引き継ぎ  | OK   | `nix 2.28.3`、`fd`・`rg` ともに `/root/.nix-profile/bin/` に配置 |
+| 4   | 冪等性マーカー | OK   | `0f62519f...` が記録済み                                         |
 
 dotfiles リポジトリに `setup-nix-web.sh` を置いておくだけで、他のリポジトリからもポータブル hook 経由でセットアップが実行できることを確認しました。
 
@@ -391,13 +396,13 @@ dotfiles リポジトリ自体を Claude Code Web で開いた場合の検証結
 
 ### 確認結果
 
-| # | 確認項目 | 結果 | 詳細 |
-|---|---------|------|------|
-| 1 | ガード条件 | OK | `if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ] \|\| [ "$(uname -s)" != "Linux" ]; then`（環境変数 + OS チェック） |
-| 2 | 環境変数 | OK | `CLAUDE_CODE_REMOTE=true` がセットされている |
-| 3 | hook 自動実行 | OK | コミット `0f62519` で 68秒でセットアップ完了 |
-| 4 | PATH 引き継ぎ | OK | `nix 2.28.3`、`fd`・`rg` ともに `/root/.nix-profile/bin/` に配置 |
-| 5 | 冪等性マーカー | OK | `0f62519f...` が `~/.local/state/nix-web-setup-done` に記録済み |
+| #   | 確認項目       | 結果 | 詳細                                                                                                           |
+| --- | -------------- | ---- | -------------------------------------------------------------------------------------------------------------- |
+| 1   | ガード条件     | OK   | `if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ] \|\| [ "$(uname -s)" != "Linux" ]; then`（環境変数 + OS チェック） |
+| 2   | 環境変数       | OK   | `CLAUDE_CODE_REMOTE=true` がセットされている                                                                   |
+| 3   | hook 自動実行  | OK   | コミット `0f62519` で 68秒でセットアップ完了                                                                   |
+| 4   | PATH 引き継ぎ  | OK   | `nix 2.28.3`、`fd`・`rg` ともに `/root/.nix-profile/bin/` に配置                                               |
+| 5   | 冪等性マーカー | OK   | `0f62519f...` が `~/.local/state/nix-web-setup-done` に記録済み                                                |
 
 ### 冪等性の確認
 

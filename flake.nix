@@ -19,12 +19,25 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
+  outputs =
+    inputs@{ nixpkgs, home-manager, ... }:
     let
       # --impure で実行時のシステムを検出（デフォルトは aarch64-darwin）
       nixSystem = builtins.getEnv "NIX_SYSTEM";
       system = if nixSystem == "" then "aarch64-darwin" else nixSystem;
       pkgs = nixpkgs.legacyPackages.${system};
+      formatter = pkgs.writeShellApplication {
+        name = "treefmt";
+        runtimeInputs = with pkgs; [
+          treefmt
+          nixfmt
+          nodePackages.prettier
+          shfmt
+        ];
+        text = ''
+          exec treefmt "$@"
+        '';
+      };
 
       mkHome = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
@@ -39,7 +52,10 @@
         modules = [ ./home.nix ];
       };
 
-    in {
+    in
+    {
+      formatter.${system} = formatter;
+
       homeConfigurations."kumewataru" = mkHome;
 
       # 互換性のためのエイリアス

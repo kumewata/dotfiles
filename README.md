@@ -36,13 +36,12 @@ nix run github:nix-community/home-manager/release-25.11 -- switch --impure --fla
 
 適用後、ターミナルを再起動すると Zsh の設定やエイリアスが有効になる。
 
-### 4. pre-commit フックの初期化（推奨）
+### 4. formatter / pre-commit の初期化（推奨）
 
-このリポジトリには `.githooks/pre-commit` が含まれており、コミット前に機密情報パターンをチェックできる。  
-`sensitive-patterns.txt` はローカル専用のため、初回のみ sample から作成する。
+`hms` 適用後は `treefmt` と `pre-commit` が利用できる。コミット前チェックを有効にするため、初回のみ hook をインストールする。`sensitive-patterns.txt` はローカル専用のため、sample から作成する。
 
 ```bash
-git config core.hooksPath .githooks
+pre-commit install
 cp .githooks/sensitive-patterns.sample.txt .githooks/sensitive-patterns.txt
 ```
 
@@ -53,6 +52,12 @@ cp .githooks/sensitive-patterns.sample.txt .githooks/sensitive-patterns.txt
 ```bash
 # 設定ファイルを編集した後、変更を適用する（エイリアス）
 hms
+
+# リポジトリ全体を整形する
+nix fmt
+
+# pre-commit の全 hook を手動実行する
+pre-commit run --all-files
 
 # Flake の入力（nixpkgs 等）を最新に更新する
 nix flake update
@@ -65,8 +70,11 @@ nix flake update
 ├── flake.nix              # Flake エントリポイント（nixpkgs unstable + Home Manager）
 ├── flake.lock             # 依存のロックファイル
 ├── home.nix               # Home Manager メイン設定（モジュール読み込み・ユーザー情報）
+├── treefmt.toml           # treefmt の整形ルール
+├── .pre-commit-config.yaml # pre-commit の hook 定義
 ├── modules/
 │   ├── packages.nix       # CLI ツール（ripgrep, fd 等）
+│   ├── quality.nix        # treefmt / pre-commit など品質基盤ツール
 │   ├── shell.nix          # Zsh 設定（Oh My Zsh, エイリアス, initExtra）
 │   └── claude-skills.nix  # Claude Code スキルのシンボリックリンク設定
 ├── config/
@@ -121,15 +129,15 @@ imports = [
 
 ## シェルエイリアス一覧
 
-| エイリアス | コマンド |
-|---|---|
-| `hms` | `nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default` |
-| `ll` | `ls -l` |
-| `co` | `git checkout` |
-| `br` | `git branch` |
-| `st` | `git status` |
-| `gif` | `git diff` |
-| `gifs` | `git diff --staged` |
-| `gil` | `git pull` |
-| `cm` | `git commit` |
-| `pn` | `pnpm` |
+| エイリアス | コマンド                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| `hms`      | `nix run --impure github:nix-community/home-manager/release-25.11 -- switch --flake .#default` |
+| `ll`       | `ls -l`                                                                                        |
+| `co`       | `git checkout`                                                                                 |
+| `br`       | `git branch`                                                                                   |
+| `st`       | `git status`                                                                                   |
+| `gif`      | `git diff`                                                                                     |
+| `gifs`     | `git diff --staged`                                                                            |
+| `gil`      | `git pull`                                                                                     |
+| `cm`       | `git commit`                                                                                   |
+| `pn`       | `pnpm`                                                                                         |

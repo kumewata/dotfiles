@@ -22,9 +22,11 @@ codex exec -s read-only "<prompt>"
 ```
 
 **Required flags:**
+
 - `-s read-only` - Always use read-only sandbox (review only, no file changes)
 
 **Optional flags:**
+
 - `-m <model>` - Override model (default: configured in `~/.codex/config.toml`)
 - `-C <path>` - Set working directory (must combine with `--skip-git-repo-check` if the target is outside a trusted git repo)
 - `--skip-git-repo-check` - Skip trusted git repository check. **Required** when reviewing files outside of a git repository (e.g., `~/.local/state/steering/`)

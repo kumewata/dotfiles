@@ -21,14 +21,14 @@ When generating Terraform code:
 
 ## File Organization
 
-| File | Purpose |
-|------|---------|
+| File           | Purpose                                     |
+| -------------- | ------------------------------------------- |
 | `terraform.tf` | Terraform and provider version requirements |
-| `providers.tf` | Provider configurations |
-| `main.tf` | Primary resources and data sources |
-| `variables.tf` | Input variable declarations (alphabetical) |
-| `outputs.tf` | Output value declarations (alphabetical) |
-| `locals.tf` | Local value declarations |
+| `providers.tf` | Provider configurations                     |
+| `main.tf`      | Primary resources and data sources          |
+| `variables.tf` | Input variable declarations (alphabetical)  |
+| `outputs.tf`   | Output value declarations (alphabetical)    |
+| `locals.tf`    | Local value declarations                    |
 
 ### Example Structure
 
@@ -284,6 +284,7 @@ terraform {
 ```
 
 **Version constraint operators:**
+
 - `= 1.0.0` - Exact version
 - `>= 1.0.0` - Greater than or equal
 - `~> 1.0` - Allow rightmost component to increment
@@ -313,12 +314,14 @@ provider "aws" {
 ## Version Control
 
 **Never commit:**
+
 - `terraform.tfstate`, `terraform.tfstate.backup`
 - `.terraform/` directory
 - `*.tfplan`
 - `.tfvars` files with sensitive data
 
 **Always commit:**
+
 - All `.tf` configuration files
 - `.terraform.lock.hcl` (dependency lock file)
 
@@ -332,6 +335,7 @@ terraform validate
 ```
 
 Additional tools:
+
 - `tflint` - Linting and best practices
 - `checkov` / `tfsec` - Security scanning
 
@@ -350,4 +354,4 @@ Additional tools:
 
 ---
 
-*Based on: [HashiCorp Terraform Style Guide](https://developer.hashicorp.com/terraform/language/style)*
+_Based on: [HashiCorp Terraform Style Guide](https://developer.hashicorp.com/terraform/language/style)_

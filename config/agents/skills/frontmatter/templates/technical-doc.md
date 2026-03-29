@@ -1,14 +1,14 @@
 ---
-title: {技術ドキュメントのタイトル}
-tags: [技術ドキュメント, {カテゴリ}, {技術スタック}]
+title: { 技術ドキュメントのタイトル }
+tags: [技術ドキュメント, { カテゴリ }, { 技術スタック }]
 use_when: >
   このドキュメントを参照すべき状況：
   - {技術的な状況1}
   - {技術的な状況2}
-keywords: [{API名}, {コンポーネント名}, {技術名}]
-related: [{関連ドキュメント}]
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+keywords: [{ API名 }, { コンポーネント名 }, { 技術名 }]
+related: [{ 関連ドキュメント }]
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # {技術ドキュメントのタイトル}

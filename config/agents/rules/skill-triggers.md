@@ -10,6 +10,7 @@
 ユーザーから作業指示を受けた場合、**デフォルトで** steering スキルを使用する。
 
 **以下のすべてに該当する場合のみ省略可**:
+
 - 変更対象が単一ファイルかつ変更箇所が明白
 - 新規ファイルの作成を伴わない
 - テストやビルドの確認が不要
@@ -28,19 +29,20 @@ PR 作成・レビュー、Issue 管理等の GitHub 操作時に使用する。
 実装やドキュメント作成が完了した時点で、codex-delegate スキルを使い Codex CLI にレビューを依頼する。
 
 **以下のすべてに該当する場合のみ省略可**:
+
 - 変更対象が単一ファイルかつ自明な修正（typo、フォーマット等）
 - ユーザーがレビュー不要と明示した場合
 
 ## 推奨トリガー
 
-| Skill / Command | Trigger |
-|-------|---------|
+| Skill / Command                | Trigger                                                                                                                                                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `orchestrate` / `/orchestrate` | 複雑な機能実装・バグ修正・リファクタリング・セキュリティレビューを段階的に進めたいとき。Claude Code では `/orchestrate` コマンド、Codex では `orchestrate` スキルとして使う。planner → reviewer → codex-review のパイプラインを実行する |
-| frontmatter | `.steering/` 配下や docs/ のドキュメント作成時 |
-| nix | Nix Flakes / Home Manager の設定変更時 |
-| claude-config-optimizer | CLAUDE.md, rules/, skills/, agents/ の編集・最適化時 |
-| skill-creator | 新しいスキルの作成・更新時 |
-| index-generator | INDEX.md の自動生成が必要なとき |
+| frontmatter                    | `.steering/` 配下や docs/ のドキュメント作成時                                                                                                                                                                                          |
+| nix                            | Nix Flakes / Home Manager の設定変更時                                                                                                                                                                                                  |
+| claude-config-optimizer        | CLAUDE.md, rules/, skills/, agents/ の編集・最適化時                                                                                                                                                                                    |
+| skill-creator                  | 新しいスキルの作成・更新時                                                                                                                                                                                                              |
+| index-generator                | INDEX.md の自動生成が必要なとき                                                                                                                                                                                                         |
 
 ## コンテキスト一致時に自動発動
 

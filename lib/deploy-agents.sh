@@ -95,7 +95,8 @@ deploy_settings_json() {
   local settings_file="${HOME_DIR}/.claude/settings.json"
 
   local new_settings
-  new_settings=$(cat <<'SETTINGS_EOF'
+  new_settings=$(
+    cat <<'SETTINGS_EOF'
 {
   "statusLine": {"type": "command", "command": "~/.claude/scripts/statusline.sh"},
   "enableAllProjectMcpServers": false,
@@ -158,7 +159,7 @@ deploy_settings_json() {
   }
 }
 SETTINGS_EOF
-)
+  )
 
   if [[ -f "$settings_file" ]] && command -v jq &>/dev/null; then
     echo "    Merging with existing settings.json"
@@ -170,16 +171,16 @@ SETTINGS_EOF
       ($old_allow + $new_allow | unique) as $merged_allow |
       . * $new |
       .permissions.allow = $merged_allow
-    ' > "${settings_file}.tmp"; then
+    ' >"${settings_file}.tmp"; then
       mv "${settings_file}.tmp" "$settings_file"
     else
       echo "    Warning: existing settings.json is invalid or could not be merged; overwriting with new settings."
       rm -f "${settings_file}.tmp"
-      echo "$new_settings" > "$settings_file"
+      echo "$new_settings" >"$settings_file"
     fi
   else
     echo "    Writing new settings.json"
-    echo "$new_settings" > "$settings_file"
+    echo "$new_settings" >"$settings_file"
   fi
 }
 
@@ -188,7 +189,7 @@ SETTINGS_EOF
 # Uses cat > (overwrite, not append) for idempotency.
 deploy_codex_rules() {
   echo "==> Codex CLI rules"
-  cat > "${HOME_DIR}/.codex/rules/nix-managed.rules" <<'CODEX_EOF'
+  cat >"${HOME_DIR}/.codex/rules/nix-managed.rules" <<'CODEX_EOF'
 # ── allow ──
 prefix_rule(pattern=["git", "status"], decision="allow")
 prefix_rule(pattern=["git", "diff"], decision="allow")

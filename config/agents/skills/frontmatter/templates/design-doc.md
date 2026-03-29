@@ -1,15 +1,15 @@
 ---
-title: {設計書のタイトル}
-tags: [設計, アーキテクチャ, {技術スタック}]
+title: { 設計書のタイトル }
+tags: [設計, アーキテクチャ, { 技術スタック }]
 use_when: >
   このドキュメントを参照すべき状況：
   - {設計判断が必要な状況1}
   - {設計判断が必要な状況2}
-keywords: [{コンポーネント名}, {パターン名}, {ライブラリ名}]
-related: [{関連ドキュメント}]
-status: draft  # draft, review, approved
-created_at: {YYYY-MM-DD}
-updated_at: {YYYY-MM-DD}
+keywords: [{ コンポーネント名 }, { パターン名 }, { ライブラリ名 }]
+related: [{ 関連ドキュメント }]
+status: draft # draft, review, approved
+created_at: { YYYY-MM-DD }
+updated_at: { YYYY-MM-DD }
 ---
 
 # {設計書のタイトル}

@@ -27,11 +27,13 @@ allowed-tools: Read, Write, Edit
 ## モード1: 既存ドキュメントへの Front Matter 追加
 
 ### 目的
+
 既存のドキュメントに YAML Front Matter を追加し、検索可能にします。
 
 ### 手順
 
 1. **対象ドキュメントを読み込む**
+
    ```
    Read('<file_path>')
    ```
@@ -85,6 +87,7 @@ allowed-tools: Read, Write, Edit
 ## モード2: 新規ドキュメントのテンプレート作成
 
 ### 目的
+
 テンプレートから新しいドキュメントを作成します。
 
 ### 手順
@@ -98,6 +101,7 @@ allowed-tools: Read, Write, Edit
    - **task**: タスク管理用
 
 2. **テンプレートを読み込む**
+
    ```
    Read('~/.claude/skills/frontmatter/templates/<type>.md')
    ```
@@ -123,6 +127,7 @@ allowed-tools: Read, Write, Edit
 ### 必須フィールド（新規作成時）
 
 #### title
+
 - **目的**: ドキュメントの簡潔なタイトル
 - **フォーマット**: 文字列
 - **例**: `Nix Flakes の使い方`, `API 設計書`
@@ -132,6 +137,7 @@ allowed-tools: Read, Write, Edit
   - 本文の H1 とは別（メタデータ用）
 
 #### tags
+
 - **目的**: カテゴリ分類、グルーピング
 - **フォーマット**: リスト形式 `[タグ1, タグ2, ...]`
 - **例**: `[設計, アーキテクチャ, Nix]`, `[技術ドキュメント, API, REST]`
@@ -142,6 +148,7 @@ allowed-tools: Read, Write, Edit
   - 混在は避ける
 
 #### use_when
+
 - **目的**: 状況ベース検索（最重要フィールド）
 - **フォーマット**: 複数行文字列（`>` で折り返し）
 - **例**:
@@ -157,6 +164,7 @@ allowed-tools: Read, Write, Edit
   - 2-5個の状況を列挙
 
 #### keywords
+
 - **目的**: 固有名詞による精密検索
 - **フォーマット**: リスト形式 `[キーワード1, キーワード2, ...]`
 - **例**: `[Nix, Home Manager, flake.nix]`, `[REST API, OpenAPI, Swagger]`
@@ -168,6 +176,7 @@ allowed-tools: Read, Write, Edit
 ### 推奨フィールド
 
 #### related
+
 - **目的**: 関連ドキュメントへのリンク
 - **フォーマット**: リスト形式（相対パスまたはファイル名）
 - **例**: `[design.md, requirements.md]`, `[../setup/installation.md]`
@@ -178,11 +187,13 @@ allowed-tools: Read, Write, Edit
 ### オプションフィールド（ドキュメントタイプ別）
 
 #### status (design-doc のみ)
+
 - **目的**: 設計書のステータス管理
 - **値**: `draft`, `review`, `approved`
 - **例**: `status: draft`
 
 #### completion (task のみ)
+
 - **目的**: タスクの完了率
 - **値**: `0%` - `100%`
 - **例**: `completion: 75%`
@@ -190,6 +201,7 @@ allowed-tools: Read, Write, Edit
 ### 自動設定フィールド
 
 #### created_at
+
 - **目的**: ドキュメント作成日
 - **フォーマット**: `YYYY-MM-DD`
 - **例**: `created_at: 2026-02-23`
@@ -197,6 +209,7 @@ allowed-tools: Read, Write, Edit
 - **一度設定したら変更しない**
 
 #### updated_at
+
 - **目的**: ドキュメント最終更新日
 - **フォーマット**: `YYYY-MM-DD`
 - **例**: `updated_at: 2026-02-23`
@@ -208,16 +221,19 @@ allowed-tools: Read, Write, Edit
 ### technical-doc: 技術ドキュメント用ガイド
 
 **対象ドキュメント**:
+
 - API ドキュメント
 - 技術仕様書
 - ハウツーガイド
 - チュートリアル
 
 **推奨 tags**:
+
 - `[技術ドキュメント, <カテゴリ>, <技術スタック>]`
 - 例: `[技術ドキュメント, API, REST]`, `[技術ドキュメント, 環境構築, Nix]`
 
 **use_when の例**:
+
 ```yaml
 use_when: >
   このドキュメントを参照すべき状況：
@@ -227,22 +243,26 @@ use_when: >
 ```
 
 **keywords の例**:
+
 - API名、エンドポイント名、技術名
 - 例: `[REST API, /users, OAuth2]`
 
 ### design-doc: 設計書用ガイド
 
 **対象ドキュメント**:
+
 - アーキテクチャ設計
 - システム設計
 - コンポーネント設計
 - データベース設計
 
 **推奨 tags**:
+
 - `[設計, アーキテクチャ, <技術スタック>]`
 - 例: `[設計, アーキテクチャ, マイクロサービス]`, `[設計, データベース, PostgreSQL]`
 
 **use_when の例**:
+
 ```yaml
 use_when: >
   このドキュメントを参照すべき状況：
@@ -252,25 +272,30 @@ use_when: >
 ```
 
 **keywords の例**:
+
 - コンポーネント名、パターン名、ライブラリ名
 - 例: `[UserService, CQRS, PostgreSQL]`
 
 **オプションフィールド**:
+
 - `status: draft` / `review` / `approved`
 
 ### note: メモ用ガイド
 
 **対象ドキュメント**:
+
 - 会議メモ
 - 調査メモ
 - 学習ノート
 - トラブルシューティングメモ
 
 **推奨 tags**:
+
 - `[メモ, <カテゴリ>]`
 - 例: `[メモ, 会議]`, `[メモ, 調査]`, `[メモ, トラブルシューティング]`
 
 **use_when の例**:
+
 ```yaml
 use_when: >
   このドキュメントを参照すべき状況：
@@ -279,21 +304,25 @@ use_when: >
 ```
 
 **keywords の例**:
+
 - 会議名、調査対象、エラーメッセージ
 - 例: `[2026年2月定例会議, Nix, build error]`
 
 ### task: タスク管理用ガイド
 
 **対象ドキュメント**:
+
 - タスクリスト
 - プロジェクト管理
 - 進捗管理
 
 **推奨 tags**:
+
 - `[タスク管理, <プロジェクト名>, <フェーズ>]`
 - 例: `[タスク管理, frontmatter実装, Phase1]`
 
 **use_when の例**:
+
 ```yaml
 use_when: >
   このドキュメントを参照すべき状況：
@@ -302,10 +331,12 @@ use_when: >
 ```
 
 **keywords の例**:
+
 - プロジェクト名、主要タスク名
 - 例: `[frontmatter, テンプレート作成, SKILL.md作成]`
 
 **オプションフィールド**:
+
 - `status: pending` / `in-progress` / `completed`
 - `completion: 0%` - `100%`
 
@@ -412,6 +443,7 @@ updated_at: 2026-02-23
 このスキルで追加した Front Matter は、doc-search エージェントで検索可能になります。
 
 検索優先順位:
+
 1. **use_when** フィールド（状況ベース検索）
 2. **keywords** フィールド（精密検索）
 3. **tags** フィールド（カテゴリ検索）
