@@ -38,6 +38,27 @@
           exec treefmt "$@"
         '';
       };
+      switchApp = pkgs.writeShellApplication {
+        name = "switch";
+        runtimeInputs = [ home-manager.packages.${system}.home-manager ];
+        text = ''
+          exec home-manager switch --impure --flake "$PWD#default" "$@"
+        '';
+      };
+      checkApp = pkgs.writeShellApplication {
+        name = "check";
+        runtimeInputs = [ pkgs.pre-commit ];
+        text = ''
+          exec pre-commit run --all-files "$@"
+        '';
+      };
+      updateApp = pkgs.writeShellApplication {
+        name = "update";
+        runtimeInputs = [ pkgs.nix ];
+        text = ''
+          exec nix flake update "$@"
+        '';
+      };
 
       mkHome = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
@@ -55,6 +76,20 @@
     in
     {
       formatter.${system} = formatter;
+      apps.${system} = {
+        switch = {
+          type = "app";
+          program = "${switchApp}/bin/switch";
+        };
+        check = {
+          type = "app";
+          program = "${checkApp}/bin/check";
+        };
+        update = {
+          type = "app";
+          program = "${updateApp}/bin/update";
+        };
+      };
 
       homeConfigurations."kumewataru" = mkHome;
 

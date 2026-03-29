@@ -31,10 +31,10 @@ cd ~/dotfiles
 ### 3. 設定の適用
 
 ```bash
-nix run github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default
+nix run --impure .#switch
 ```
 
-適用後、ターミナルを再起動すると Zsh の設定やエイリアスが有効になる。
+`switch` app は `builtins.getEnv "USER"` を使うため、`--impure` が必要。適用後、ターミナルを再起動すると Zsh の設定やエイリアスが有効になる。
 
 ### 4. formatter / pre-commit の初期化（推奨）
 
@@ -74,18 +74,20 @@ git log --show-signature -1
 ## 日常の使い方
 
 ```bash
-# 設定ファイルを編集した後、変更を適用する（エイリアス）
-hms
+# 設定ファイルを編集した後、変更を適用する
+nix run --impure .#switch
 
 # リポジトリ全体を整形する
 nix fmt
 
-# pre-commit の全 hook を手動実行する
-pre-commit run --all-files
+# ローカル品質チェックを実行する
+nix run .#check
 
 # Flake の入力（nixpkgs 等）を最新に更新する
-nix flake update
+nix run .#update
 ```
+
+既存の `hms` エイリアスは互換導線として残しているが、README 上の主導線は flake apps の `switch/check/update` とする。
 
 ## リポジトリ構成
 
@@ -152,6 +154,8 @@ imports = [
 ```
 
 ## シェルエイリアス一覧
+
+`hms` は `nix run --impure .#switch` と同じ目的の互換エイリアス。
 
 | エイリアス | コマンド                                                                                       |
 | ---------- | ---------------------------------------------------------------------------------------------- |
