@@ -32,6 +32,37 @@ If `--with` agents are specified, insert them before `codex-review`.
 Example: `/orchestrate feature --with python-reviewer "Build a REST API"` becomes:
 `planner → tdd-guide → code-reviewer → security-reviewer → python-reviewer → codex-review`
 
+## Step 2.5: Apply Phase Strictness Rules
+
+Keep the standard pipeline, but classify phases per workflow as `required`, `conditionally skippable`, or `optional`.
+
+- `feature`
+  - `planner`: required
+  - `tdd-guide`: conditionally skippable when test strategy is already obvious or the change is mostly configuration
+  - `code-reviewer`: required
+  - `security-reviewer`: conditionally skippable when the change does not cross a security boundary
+  - `codex-review`: required
+- `bugfix`
+  - `planner`: required
+  - `tdd-guide`: conditionally skippable when reproduction and fix strategy are simple enough that extra test guidance adds little value
+  - `code-reviewer`: required
+  - `codex-review`: required
+- `refactor`
+  - `planner`: required
+  - `architect`: conditionally skippable when the structural change is narrow and fully constrained by existing design
+  - `code-reviewer`: required
+  - `tdd-guide`: conditionally skippable when behavior is intended to remain unchanged and existing tests are sufficient
+  - `codex-review`: required
+- `security`
+  - `planner`: required
+  - `security-reviewer`: required
+  - `code-reviewer`: required
+  - `codex-review`: required
+- `custom`
+  - user-specified phases: conditionally skippable
+  - `codex-review`: required
+  - if planner is omitted, state the custom pipeline explicitly before execution
+
 ## Step 3: Steering Integration (必須)
 
 **orchestrate は常に steering ドキュメントを作成する。** orchestrate を使う時点で一定の複雑さがあるタスクであり、計画・進捗管理は省略しない。
@@ -48,21 +79,40 @@ Before invoking the first agent:
 For each agent in the pipeline (except codex-review):
 
 ### 4a. Invoke the agent
+
 Use the environment's agent mechanism to spawn the agent with:
+
 - The original task description
-- The handoff document from the previous agent (if any)
+- The handoff path from the previous phase (if any)
 - Context about the steering documents location
 
 Tool mapping:
+
 - Claude Code: Agent tool
 - Codex: `spawn_agent`, `send_input`, `wait_agent`
 
 ### 4b. Collect handoff
 
-After the agent completes, create a handoff document:
+After the agent completes, create and persist a handoff document in the steering directory.
+
+Rules:
+
+- Save it at `handoff-<phase>.md` in the steering directory
+- If the same phase is rerun or the task resumes in another session, use `handoff-<phase>-<timestamp>.md` to avoid destructive overwrite
+- Pass the saved handoff path, not just a prose summary, to the next phase
+- When resuming a cross-session task, read the latest relevant handoff file before invoking the next phase
+- If a phase is skipped, record the following in the nearest handoff:
+  - `Skipped Phase`
+  - `Skip Reason`
+  - `Why this is acceptable for this workflow`
+  - `Residual Risks`
+- Use these terms consistently:
+  - `not observed`: missing evidence
+  - `skipped with reason`: skipped and justified
+  - `required phase skipped`: a required phase was skipped and needs explicit attention
 
 ```markdown
-## HANDOFF: [previous-agent] → [next-agent]
+## HANDOFF: [completed-phase] → [next-phase]
 
 ### Context
 
@@ -95,7 +145,7 @@ Each agent completes a phase of work. **必ず** steering の tasklist.md を更
 
 ### 4d. Pass to next agent
 
-Include the handoff document in the next agent's prompt.
+Include the saved handoff path in the next agent's prompt.
 
 ## Step 5: Codex Cross-Model Review
 
@@ -129,67 +179,58 @@ Construct the review prompt with:
 [Same format]
 
 ### Review Instructions
+
 Review the above agent findings and diff comprehensively:
+
 1. Are there issues earlier phases missed?
 2. Are there contradictions or duplicates in the findings?
 3. Overall implementation quality assessment: SHIP / NEEDS WORK / BLOCKED
 ```
 
 **Failure handling**:
+
 - In Claude Code, if `codex` is not installed, not authenticated, or times out, do not fail the orchestration. Record `codex-review: SKIPPED (reason)` in the final report and continue to Step 6.
 - In Codex itself, do not shell out to nested `codex exec` unless there is a specific need. The current Codex session may perform the final review directly and record it as `codex-review: COMPLETE (in-session)`.
 
 ## Step 6: Final Orchestration Report
 
-Generate the final report:
+Generate the final report with the fixed template below. Do not omit section headers.
 
 ```markdown
 # Orchestration Report
 
-## Overview
+## Workflow Type
 
-- **Workflow**: [type]
-- **Task**: [description]
-- **Pipeline**: [agent → agent → ... → codex-review]
+[feature | bugfix | refactor | security | custom]
 
-## Agent Results
+## Actual Pipeline
 
-### [Agent Name] (Phase N)
+[planner -> ... -> codex-review]
 
-**Status**: Complete
-**Key Findings**:
+## Phase Results
 
-- [Finding 1]
-- [Finding 2]
+- planner: COMPLETE
+- tdd-guide: COMPLETE
+- code-reviewer: SKIPPED (reason)
+- codex-review: COMPLETE / SKIPPED (reason) / FAILED (reason)
 
-**Files Changed**:
+## Issues Found
 
-- [file list]
+- [cross-phase issue or notable finding]
+- [remaining risk or "none"]
 
-### Codex Cross-Model Review
+## Final Verdict
 
-**Status**: Complete / SKIPPED (reason)
-**Assessment**: SHIP / NEEDS WORK / BLOCKED
-**Additional Findings**:
-
-- [Issues Claude missed, if any]
-
-## Summary
-
-| Agent             | Status | Issues Found     |
-| ----------------- | ------ | ---------------- |
-| planner           | ✓      | —                |
-| tdd-guide         | ✓      | 2                |
-| code-reviewer     | ✓      | 3 HIGH, 1 MEDIUM |
-| security-reviewer | ✓      | 0 CRITICAL       |
-| codex-review      | ✓      | 1 additional     |
-
-## Recommendation
-
-**SHIP** / **NEEDS WORK** / **BLOCKED**
-
-[Rationale for recommendation based on aggregate findings]
+SHIP | NEEDS WORK | BLOCKED
 ```
+
+Requirements:
+
+- Always include `Workflow Type`, `Actual Pipeline`, `Phase Results`, `Issues Found`, and `Final Verdict`
+- Record skip reasons inline in `Phase Results`
+- If `codex-review` is skipped, repeat the reason in `Issues Found`
+- If a workflow-specific phase is skipped, record that reason as well so post-run evaluation can distinguish `skipped with reason` from `not observed`
+- If a required phase is skipped, make that explicit in `Phase Results` or `Issues Found` using `required phase skipped`
 
 ## Step 7: Steering Finalization
 
