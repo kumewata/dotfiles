@@ -1,14 +1,7 @@
 ---
 name: codex-delegate
 description: |
-  Delegate code review and document review tasks to OpenAI Codex CLI via `codex exec`.
-  Use when:
-  - The user asks to get a second opinion or review from Codex/another AI
-  - The user asks to delegate a review task to Codex
-  - The user explicitly asks to run codex or use codex for review
-  - Code review: check implementation quality, bugs, security issues, best practices
-  - Document review: check README, design docs, comments for clarity and accuracy
-  Do NOT use for tasks that require file modifications (use Claude Code directly instead).
+  Use when the user wants a second opinion or review from Codex on code, docs, diffs, or design notes without modifying files. This includes implementation review, bug risk review, security review, and document clarity review through `codex exec`. Do NOT use for tasks that require file edits or direct implementation; keep this skill review-only. Trigger especially when the user says review with Codex, second opinion, delegate review, use codex, or check this diff or document.
 ---
 
 # Codex Delegate

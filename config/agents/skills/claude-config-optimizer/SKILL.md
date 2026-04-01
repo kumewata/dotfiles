@@ -1,13 +1,7 @@
 ---
 name: claude-config-optimizer
 description: |
-  Claude Code config optimization skill.
-  Use when:
-  - Editing CLAUDE.md, rules/, skills/, agents/, commands/
-  - User asks about config best practices
-  - Checking optimization status
-  - User says "claude code changelog" or "claude code updates"
-  - User asks about new features or breaking changes in Claude Code
+  Use when editing or reviewing Claude Code configuration artifacts such as CLAUDE.md, rules, skills, agents, commands, or settings, or when the user asks for Claude Code configuration best practices, changelog review, new features, or breaking changes. Do NOT use for Codex-only configuration changes unless the task also affects shared agent assets in this repository. Trigger especially when the user mentions CLAUDE.md, Claude Code settings, rules, hooks, agents, commands, changelog, updates, or config optimization.
 ---
 
 # Claude Config Optimizer Skill

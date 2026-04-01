@@ -1,10 +1,7 @@
 ---
 name: git
 description: |
-  Git operations guide. Provides how-to for common git tasks.
-  Use when:
-  - Writing commit messages (Conventional Commits format)
-  - Understanding git workflows
+  Use when the task is primarily about Git operations or Git workflow, such as writing commit messages, creating or switching branches, understanding rebase or cherry-pick flow, inspecting history, or deciding how to structure commits. Do NOT use for GitHub-specific actions like PR comments or issue updates; use the github skill for those. Trigger especially when the user mentions commit, branch, rebase, cherry-pick, stash, merge, or Conventional Commits.
 ---
 
 # Git Skill

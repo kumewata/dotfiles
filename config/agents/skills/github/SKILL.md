@@ -1,14 +1,7 @@
 ---
 name: github
 description: |
-  GitHub operations guide using gh CLI.
-  Use when:
-  - Working with GitHub Issues
-  - Managing sub-issues (parent-child relationships)
-  - Posting comments to a PR
-  - Posting inline comments to a PR
-  - Replying to PR comments
-  - Checking diffs with line numbers
+  Use when the task is primarily about GitHub operations through gh CLI, such as working with issues, pull requests, review comments, inline comments, sub-issues, or fetching PR diffs with line numbers. Do NOT use for local Git-only workflow questions that do not touch GitHub; use the git skill for those. Trigger especially when the user mentions GitHub, gh, issue, pull request, PR review, inline comment, review reply, or diff with line numbers.
 ---
 
 # GitHub Skill

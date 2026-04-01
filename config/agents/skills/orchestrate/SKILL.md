@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: 複雑な機能実装・バグ修正・リファクタリング・セキュリティ対応を、planner や reviewer 系エージェントを組み合わせた段階的なオーケストレーションで進めるスキル。Claude Code のカスタムコマンド相当の流れを Codex でも再現したいときに使う。
+description: Use when the user wants a complex implementation, bug fix, refactor, or security-sensitive change to be handled in multiple explicit phases with planning, review, and handoff artifacts instead of one straight-line execution. Do NOT use for simple fixes, single-file edits, or tasks that do not need staged review. Trigger especially when the user asks for orchestration, phased execution, planner plus reviewer flow, multi-agent workflow, or asks to use orchestrate.
 ---
 
 # Orchestrate Skill

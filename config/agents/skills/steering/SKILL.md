@@ -1,6 +1,6 @@
 ---
 name: steering
-description: 作業指示毎の作業計画、タスクリストをドキュメントに記録するためのスキル。ユーザーからの指示をトリガーとした作業計画時、実装時、検証時に読み込む。
+description: Use when the user asks for a plan, implementation checklist, task breakdown, progress tracking, or a durable task artifact for a non-trivial task. Also use when creating or updating steering documents such as requirements, design, or tasklist files under ~/.local/state/steering. Do NOT use for simple Q&A, lightweight investigation with no artifact, or single-file obvious edits that do not need planning. Trigger especially on requests like "改善プラン", "実装計画", "タスクリスト", "進捗管理", or "steeringを使って".
 allowed-tools: Read, Write
 ---
 
