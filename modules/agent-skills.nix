@@ -2,6 +2,7 @@
 # agent-skills-nix を使用して symlink-tree 構造でデプロイ
 # cf. https://github.com/Kyure-A/agent-skills-nix
 {
+  config,
   inputs,
   pkgs,
   username,
@@ -76,10 +77,11 @@ in
         enable = true;
         structure = "symlink-tree";
       };
-      # OpenAI Codex: ~/.codex/skills/
+      # OpenAI Codex: ~/.agents/skills/ (official user discovery path)
       codex = {
         enable = true;
-        dest = "${homeDir}/.codex/skills";
+        # Prefer the documented user discovery path for Codex skills.
+        dest = "${homeDir}/.agents/skills";
         structure = "symlink-tree";
       };
     };
@@ -95,6 +97,11 @@ in
     // {
       # ルール（起動時に全て読み込まれ、スキルの発動トリガーとして機能する）
       ".claude/rules/skill-triggers.md".source = ../config/agents/rules/skill-triggers.md;
+      # Codex 互換パス。移行期間は ~/.codex/skills からも同じ内容を参照できるようにする。
+      ".codex/skills" = {
+        source = config.lib.file.mkOutOfStoreSymlink "${homeDir}/.agents/skills";
+        force = true;
+      };
       # スクリプト（executable 属性が必要なため個別定義）
       ".claude/scripts/statusline.sh" = {
         source = ../config/agents/scripts/statusline.sh;
