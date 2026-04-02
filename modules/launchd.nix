@@ -14,7 +14,7 @@
         "/bin/sh"
         "-c"
         ''
-          /Users/${username}/.local/bin/claude insights && \
+          /Users/${username}/.local/bin/claude -p "/insights" && \
           cp /Users/${username}/.claude/usage-data/report.html \
              /Users/${username}/.claude/usage-data/report-$(date +%Y%m%d).html
         ''
