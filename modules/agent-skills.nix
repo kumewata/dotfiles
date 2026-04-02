@@ -197,6 +197,13 @@ in
         prefix_rule(pattern=["terraform", "output"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "list"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "show"], decision="allow")
+        # Snowflake CLI（read-only 系のみ）
+        prefix_rule(pattern=["snow", "sql"], decision="allow")
+        prefix_rule(pattern=["snow", "object", "list"], decision="allow")
+        prefix_rule(pattern=["snow", "object", "describe"], decision="allow")
+        prefix_rule(pattern=["snow", "connection", "list"], decision="allow")
+        prefix_rule(pattern=["snow", "connection", "test"], decision="allow")
+        prefix_rule(pattern=["snow", "stage", "list-files"], decision="allow")
 
         # Runtime（バージョン確認・テスト等）
         prefix_rule(pattern=["node", "--version"], decision="allow")
@@ -283,6 +290,10 @@ in
 
         # ── forbidden: 完全ブロック ──
 
+        # Snowflake CLI（変更系 — 一律禁止）
+        prefix_rule(pattern=["snow", "stage", "copy"], decision="forbidden")
+        prefix_rule(pattern=["snow", "object", "create"], decision="forbidden")
+        prefix_rule(pattern=["snow", "object", "drop"], decision="forbidden")
         # システム破壊
         prefix_rule(pattern=["sudo"], decision="forbidden")
         prefix_rule(pattern=["rm", "-rf", "/"], decision="forbidden")
@@ -485,6 +496,13 @@ in
             "Bash(terraform output*)"
             "Bash(terraform state list*)"
             "Bash(terraform state show*)"
+            # Snowflake CLI（read-only 系のみ）
+            "Bash(snow sql *)"
+            "Bash(snow object list*)"
+            "Bash(snow object describe*)"
+            "Bash(snow connection list*)"
+            "Bash(snow connection test*)"
+            "Bash(snow stage list-files*)"
             # Runtime（バージョン確認・テスト等のみ）
             "Bash(node --version*)"
             "Bash(python --version*)"
@@ -570,6 +588,10 @@ in
           ];
           # ── 完全ブロック（deny は allow/ask より常に優先） ──
           deny = [
+            # Snowflake CLI（変更系 — 一律禁止）
+            "Bash(snow stage copy*)"
+            "Bash(snow object create*)"
+            "Bash(snow object drop*)"
             # システム破壊
             "Bash(sudo *)"
             "Bash(rm -rf /)"
