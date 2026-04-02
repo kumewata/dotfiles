@@ -197,8 +197,8 @@ in
         prefix_rule(pattern=["terraform", "output"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "list"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "show"], decision="allow")
-        # Snowflake CLI（read-only 系のみ）
-        prefix_rule(pattern=["snow", "sql"], decision="allow")
+        # Snowflake CLI（read-only 系のみ — snow sql は prompt）
+        prefix_rule(pattern=["snow", "sql"], decision="prompt")
         prefix_rule(pattern=["snow", "object", "list"], decision="allow")
         prefix_rule(pattern=["snow", "object", "describe"], decision="allow")
         prefix_rule(pattern=["snow", "connection", "list"], decision="allow")
@@ -496,8 +496,7 @@ in
             "Bash(terraform output*)"
             "Bash(terraform state list*)"
             "Bash(terraform state show*)"
-            # Snowflake CLI（read-only 系のみ）
-            "Bash(snow sql *)"
+            # Snowflake CLI（read-only 系のみ — snow sql は ask）
             "Bash(snow object list*)"
             "Bash(snow object describe*)"
             "Bash(snow connection list*)"
@@ -550,6 +549,8 @@ in
             "Bash(nix *)"
             "Bash(nix-store *)"
             "Bash(gh *)"
+            # Snowflake CLI（クエリ実行は都度確認）
+            "Bash(snow sql *)"
             # Package install / agent invocation
             "Bash(npm install*)"
             "Bash(pnpm install*)"

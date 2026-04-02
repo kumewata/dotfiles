@@ -427,7 +427,8 @@ snow sql -q "SELECT * FROM my_table WHERE condition" --format csv
 
 ### 6.2. Tips
 
-- `snow sql`, `snow object list/describe`, `snow connection list/test` は自動許可される
+- `snow object list/describe`, `snow connection list/test` は自動許可される
+- `snow sql`（クエリ実行）は都度確認が必要
 - 変更系（`snow stage copy`, `snow object create/drop`）は禁止されている
 - 大量データの取得は `LIMIT` を付けるか `--format csv` でファイルに出力
 - 接続設定は `~/Library/Application\ Support/snowflake/config.toml`（macOS）または `~/.snowflake/config.toml`（Linux） で管理
