@@ -29,7 +29,7 @@ snow connection test --connection <connection_name>
 snow connection set-default <connection_name>
 ```
 
-Connection config is stored in `~/.snowflake/config.toml`:
+Connection config is stored in `~/Library/Application\ Support/snowflake/config.toml`（macOS）または `~/.snowflake/config.toml`（Linux）:
 
 ```toml
 [connections.default]
@@ -430,7 +430,7 @@ snow sql -q "SELECT * FROM my_table WHERE condition" --format csv
 - `snow sql`, `snow object list/describe`, `snow connection list/test` は自動許可される
 - 変更系（`snow stage copy`, `snow object create/drop`）は禁止されている
 - 大量データの取得は `LIMIT` を付けるか `--format csv` でファイルに出力
-- 接続設定は `~/.snowflake/config.toml` で管理
+- 接続設定は `~/Library/Application\ Support/snowflake/config.toml`（macOS）または `~/.snowflake/config.toml`（Linux） で管理
 
 ## 7. Reference Links
 
