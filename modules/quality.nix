@@ -8,5 +8,8 @@
     pkgs.prettier
     pkgs.shfmt
     pkgs.shellcheck
+    pkgs.actionlint
+    pkgs.ghalint
+    pkgs.zizmor
   ];
 }

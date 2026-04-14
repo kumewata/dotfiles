@@ -19,3 +19,19 @@ repos:
         entry: .githooks/check-sensitive-info.sh
         language: system
         pass_filenames: false
+      - id: actionlint
+        name: actionlint
+        entry: actionlint
+        language: system
+        files: '^\.github/workflows/[^/]+\.ya?ml$'
+      - id: ghalint
+        name: ghalint
+        entry: ghalint run
+        language: system
+        pass_filenames: false
+        files: '^\.github/workflows/[^/]+\.ya?ml$'
+      - id: zizmor
+        name: zizmor
+        entry: zizmor --no-online-audits
+        language: system
+        files: '^\.github/workflows/[^/]+\.ya?ml$'
