@@ -46,6 +46,7 @@ gh pr view NUMBER --repo OWNER/REPO --json files --jq '.files[].path'
 Do NOT proceed to Phase 1 until the user responds or explicitly skips. This is the only interactive pause in the skill.
 
 **Step 4**: Record the response:
+
 - User responds with expertise → store as `reviewer_expertise` for Phase 3.5
 - User says "skip", "スキップ", or equivalent → set `reviewer_expertise = unknown`, default to Level B in Phase 3.5
 - User provides the PR URL together with context like "dbt は初めて" → extract expertise from context, no separate question needed
@@ -94,10 +95,10 @@ gh api repos/OWNER/REPO/pulls/NUMBER/requested_reviewers
 
 Extract dependency references from the diff based on the detected language:
 
-| Language | Pattern | Example |
-|----------|---------|---------|
-| dbt | `ref('model')`, `source('src', 'table')` | `ref('stg_orders')` |
-| Python | `import mod`, `from mod import name` | `from utils import helper` |
+| Language  | Pattern                                               | Example                                     |
+| --------- | ----------------------------------------------------- | ------------------------------------------- |
+| dbt       | `ref('model')`, `source('src', 'table')`              | `ref('stg_orders')`                         |
+| Python    | `import mod`, `from mod import name`                  | `from utils import helper`                  |
 | Terraform | `module "x" { source = "..." }`, `data "type" "name"` | `module "vpc" { source = "./modules/vpc" }` |
 
 For each extracted reference, read the referenced file from the local repository. If the language is not in the table above, note: "この依存パターンは自動追跡の対象外です。手動での確認を推奨します。"
@@ -154,24 +155,24 @@ git blame --line-porcelain <target-file> | grep "^author " | sort | uniq -c | so
 
 ### Analysis Framework
 
-| Aspect | Content | Domain Knowledge Required |
-|--------|---------|--------------------------|
-| Consistency | Deviations from existing patterns | No |
-| Missing elements | Required config/meta/tests absent | No |
-| Naming | File/column name convention compliance | Low |
-| Documentation | Required items present/absent | Low |
-| Design decisions | Better alternatives exist? | Yes (supplement with questions) |
+| Aspect           | Content                                | Domain Knowledge Required       |
+| ---------------- | -------------------------------------- | ------------------------------- |
+| Consistency      | Deviations from existing patterns      | No                              |
+| Missing elements | Required config/meta/tests absent      | No                              |
+| Naming           | File/column name convention compliance | Low                             |
+| Documentation    | Required items present/absent          | Low                             |
+| Design decisions | Better alternatives exist?             | Yes (supplement with questions) |
 
 **Domain knowledge rule**: When an analysis item requires domain knowledge that the reviewer lacks (marked "Yes" or "Low" above), tag it with `⚠ PR作成者に確認が必要` in the output. This makes it explicit which items are reviewer judgment vs. items requiring author clarification.
 
 ### Classification Criteria
 
-| Level | Criteria | Examples |
-|-------|----------|---------|
+| Level    | Criteria                                                       | Examples                                                              |
+| -------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
 | **must** | Bug, regression risk, safety issue, clear convention violation | Missing required test, SQL injection risk, breaking existing contract |
-| **want** | Quality improvement: consistency issue, operational concern | Inconsistent naming vs directory pattern, missing description |
-| **info** | Decision material: design alternatives, background knowledge | Alternative approach exists, related model context |
-| **nits** | Minor fix: formatting, typo | Trailing whitespace, comment typo |
+| **want** | Quality improvement: consistency issue, operational concern    | Inconsistent naming vs directory pattern, missing description         |
+| **info** | Decision material: design alternatives, background knowledge   | Alternative approach exists, related model context                    |
+| **nits** | Minor fix: formatting, typo                                    | Trailing whitespace, comment typo                                     |
 
 ### Automated Review Comment Evaluation
 
@@ -182,6 +183,7 @@ If automated review comments exist (Copilot, CodeRabbit, etc.):
 3. Add supplementary context if the automated comment misses important nuance
 
 Output format:
+
 ```
 **Copilot comment on file.py:42**: "Consider null check"
 → **Agree** — この関数は外部入力を受けるため、null チェックは必須です。
@@ -237,9 +239,11 @@ Format: `@{name}（{根拠: このディレクトリの変更の{N}%を担当、
 ## PR #{NUMBER} の解説とレビュー
 
 ### 背景の整理
+
 {PRの動機、なぜこの変更が必要か、技術的背景の解説}
 
 ### ファイル別解説
+
 {各ファイルの変更内容を解説。技術用語は初回登場時に簡単な説明を添える}
 
 ### レビューポイント
@@ -247,25 +251,31 @@ Format: `@{name}（{根拠: このディレクトリの変更の{N}%を担当、
 各指摘には必ず「なぜそれが問題か」の理由を付与すること。ドメイン知識が必要な判断には「⚠ PR作成者に確認が必要」と明示すること。
 
 #### must（必須修正）
+
 - {指摘内容} — 理由: {なぜ問題か}
 - {該当なしの場合は「特になし」と明示}
 
 #### want（改善推奨）
+
 - {指摘内容} — 理由: {なぜ問題か}
 - {該当なしの場合は「特になし」と明示}
 
 #### info（参考情報）
+
 - {指摘内容} — 理由: {なぜ参考になるか}
 - {該当なしの場合は「特になし」と明示}
 
 #### nits（些細な修正）
+
 - {指摘内容}
 - {該当なしの場合は「特になし」と明示}
 
 ### 既存の自動レビューコメントの評価
+
 {Copilot等のコメントがあれば、採否を理由付きで評価。なければ「自動レビューコメントなし」}
 
 ### まとめ
+
 {変更の安全性評価、主な確認ポイント}
 ```
 
@@ -275,19 +285,24 @@ Level A の全セクションに加え、以下を追加:
 
 ```markdown
 ### レビュアー適格性の判定
+
 **判定: Level B — 部分レビュー + 引き継ぎ推奨**
 
 自分でレビューできた範囲:
+
 - {一貫性チェック結果}
 - {命名規則の確認結果}
 
 判断に専門知識が必要な部分:
+
 - {具体的な点}
 
 ### 適任者候補
+
 - @{name}（{根拠}）
 
 ### 引き継ぎメモ（下書き）
+
 > @{name} このPRのレビュー支援をお願いできますか。
 > 私が確認できた範囲: {一貫性チェック結果のサマリ}
 > 判断に迷っている点: {具体的な点}
@@ -300,17 +315,21 @@ Level A の全セクションに加え、以下を追加:
 ## PR #{NUMBER} の解説とレビュー
 
 ### 背景の整理
+
 {PRの動機を1-2文で要約}
 
 ### レビュアー適格性の判定
+
 **判定: Level C — エスカレーション推奨**
 
 理由: {変更の大部分が{技術領域}の専門知識を要するため}
 
 ### 適任者候補
+
 - @{name}（{根拠}）
 
 ### 状況説明メモ（下書き）
+
 > @{name} このPRのレビューをお願いできますか。
 > PR概要: {1-2文の要約}
 > 自分にはこの領域の知見が不足しており、適切なレビューが困難です。
@@ -343,8 +362,8 @@ After presenting the review output, remain available for:
 
 ## 11. Related Resources
 
-| Resource | Purpose |
-|----------|---------|
-| skills/github | gh CLI commands, inline comment format |
+| Resource              | Purpose                                          |
+| --------------------- | ------------------------------------------------ |
+| skills/github         | gh CLI commands, inline comment format           |
 | skills/codex-delegate | Automated review delegation (different use case) |
-| skills/git | Local git operations |
+| skills/git            | Local git operations                             |
