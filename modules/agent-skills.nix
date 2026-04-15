@@ -127,6 +127,11 @@ in
         source = ../config/agents/scripts/stop-notify.sh;
         executable = true;
       };
+      # Databricks steering 同期スクリプト（databricks-steering-sync スキルから参照）
+      ".claude/scripts/sync-to-genie.sh" = {
+        source = ../config/agents/scripts/sync-to-genie.sh;
+        executable = true;
+      };
       # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
       ".claude/scripts/setup-web.sh" = {
         source = ../setup-web.sh;
