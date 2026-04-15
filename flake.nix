@@ -55,6 +55,9 @@
           shfmt
           shellcheck
           ripgrep
+          actionlint
+          ghalint
+          zizmor
         ];
         text = ''
           exec pre-commit run --all-files "$@"
