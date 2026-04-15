@@ -2,7 +2,8 @@
 # sync-to-genie.sh - ローカル steering ドキュメントを Databricks ワークスペースに同期
 #
 # Usage:
-#   sync-to-genie.sh [options] --init [skill-name]            # SKILL.md の初期配置
+#   sync-to-genie.sh [options] --init [skill-name]            # 単一スキルの SKILL.md 配置
+#   sync-to-genie.sh [options] --init-all                     # 全 Genie Code スキルを一括デプロイ
 #   sync-to-genie.sh [options] <steering-dir>                  # push（差分同期）
 #   sync-to-genie.sh [options] --full <steering-dir>           # push（完全同期・削除反映）
 #   sync-to-genie.sh [options] --watch <steering-dir>          # push + ファイル監視
@@ -36,6 +37,9 @@ PULL_MODE=false
 FORCE_MODE=false
 CLEANUP_DIR=""
 
+# Genie Code 用スキルのソースディレクトリ（Nix でデプロイ済み、環境変数で override 可）
+GENIE_SKILLS_DIR="${GENIE_SKILLS_DIR:-${HOME}/.claude/genie-skills}"
+
 # --- 共通関数 ---
 check_deps() {
   for cmd in databricks jq; do
@@ -47,7 +51,7 @@ check_deps() {
 }
 
 check_auth() {
-  if ! databricks auth describe "${DB_PROFILE_FLAG[@]}" &>/dev/null; then
+  if ! databricks auth describe ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"} &>/dev/null; then
     echo "Error: databricks CLI authentication not configured. Run 'databricks auth login' first." >&2
     exit 1
   fi
@@ -55,7 +59,7 @@ check_auth() {
 
 get_db_user() {
   local db_user
-  db_user=$(databricks current-user me "${DB_PROFILE_FLAG[@]}" --output json 2>/dev/null | jq -r '.userName' 2>/dev/null) || {
+  db_user=$(databricks current-user me ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"} --output json 2>/dev/null | jq -r '.userName' 2>/dev/null) || {
     echo "Error: failed to get Databricks username. Check authentication." >&2
     exit 1
   }
@@ -74,78 +78,72 @@ validate_skill_name() {
   fi
 }
 
-# --- --init: SKILL.md の配置 ---
+# --- --init: 単一スキルの SKILL.md 配置 ---
 do_init() {
   local skill_name="$1"
   local db_user
   db_user=$(get_db_user)
   local remote_skill="/Users/${db_user}/.assistant/skills/${skill_name}"
 
-  local work_dir
-  work_dir=$(mktemp -d)
-  CLEANUP_DIR="$work_dir"
-
-  # steering-dir に SKILL.md があればそれを使用、なければデフォルト生成
-  local skill_source="${STEERING_SKILL_MD:-}"
-  if [[ -n "$skill_source" && -f "$skill_source" ]]; then
-    cp "$skill_source" "${work_dir}/SKILL.md"
-  else
-    cat >"${work_dir}/SKILL.md" <<'SKILL_EOF'
----
-name: project-steering
-description: |
-  プロジェクトの要件・設計・タスクリストに基づいてデータ作業を実行する。
-  データパイプライン構築、分析ノートブック作成、SQL クエリ作成、
-  ダッシュボード生成のいずれかの作業指示があった場合にこのスキルを使用する。
-  タスクリストの進捗に従い、未完了タスクから順に着手する。
----
-
-## steering ドキュメントの場所
-
-steering ドキュメントは、現在のユーザーの workspace 配下に格納されている:
-
-```
-/Users/<current-user>/steering/<owner--repo>/<task-dir>/
-  requirements.md   — 要件定義
-  design.md         — 設計書
-  tasklist.md       — タスクリスト
-```
-
-`<current-user>` は現在のセッションのユーザー名に読み替えること。
-
-## 作業手順
-
-1. ユーザーから作業対象のタスクを指示されたら、`/Users/<current-user>/steering/` 配下から該当するタスクディレクトリを特定する
-2. requirements.md が存在すれば読み、プロジェクトの目的と要件を理解する
-3. design.md が存在すれば読み、技術的な設計方針を把握する
-4. tasklist.md が存在すれば読み、現在のタスク状態を確認する
-5. tasklist の中で未完了（`[ ]`）のタスクを特定し、上から順に着手する
-6. 各タスクの実装後、ユーザーに結果を報告する
-
-※ 上記ファイルが存在しない場合はそのステップをスキップする。
-
-## 注意事項
-
-- タスクリストに記載のないスコープ外の作業は行わない
-- 設計方針と異なるアプローチが必要な場合はユーザーに確認する
-- requirements.md の受け入れ条件を意識して実装する
-SKILL_EOF
+  # スキルソースの決定: 環境変数 > genie-skills ディレクトリ > エラー
+  local skill_file="${STEERING_SKILL_MD:-}"
+  if [[ -z "$skill_file" || ! -f "$skill_file" ]]; then
+    skill_file="${GENIE_SKILLS_DIR}/${skill_name}/SKILL.md"
+  fi
+  if [[ ! -f "$skill_file" ]]; then
+    echo "Error: SKILL.md not found for skill '${skill_name}'" >&2
+    echo "  Checked: ${GENIE_SKILLS_DIR}/${skill_name}/SKILL.md" >&2
+    exit 1
   fi
 
-  # name フィールドをスキル名に合わせる
-  sed -i.bak "s|^name: .*$|name: ${skill_name}|" "${work_dir}/SKILL.md"
-  rm -f "${work_dir}/SKILL.md.bak"
+  # ディレクトリ名と SKILL.md 内の name: フィールドの整合性チェック
+  local yaml_name
+  yaml_name=$(grep -m1 '^name:' "$skill_file" | sed 's/^name:[[:space:]]*//' || true)
+  if [[ -n "$yaml_name" && "$yaml_name" != "$skill_name" ]]; then
+    echo "Warning: skill name mismatch: directory='${skill_name}' vs SKILL.md name='${yaml_name}'" >&2
+  fi
 
   if [[ "$DRY_RUN" == true ]]; then
-    echo "[dry-run] Would deploy SKILL.md to ${remote_skill}/SKILL.md"
-    echo "--- SKILL.md content ---"
-    cat "${work_dir}/SKILL.md"
-    echo "------------------------"
+    echo "[dry-run] Would deploy ${skill_file} to ${remote_skill}/SKILL.md"
   else
-    echo "Initializing skill at ${remote_skill} ..."
-    databricks workspace mkdirs "${remote_skill}" "${DB_PROFILE_FLAG[@]}" 2>/dev/null || true
-    databricks workspace import "${remote_skill}/SKILL.md" --file "${work_dir}/SKILL.md" --format AUTO --overwrite "${DB_PROFILE_FLAG[@]}"
-    echo "Done. SKILL.md deployed to ${remote_skill}/SKILL.md"
+    echo "Deploying ${skill_name} to ${remote_skill} ..."
+    databricks workspace mkdirs "${remote_skill}" ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"} 2>/dev/null || true
+    databricks workspace import "${remote_skill}/SKILL.md" --file "${skill_file}" --format AUTO --overwrite ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"}
+    echo "Done."
+  fi
+}
+
+# --- --init-all: 全 Genie Code スキルを一括デプロイ ---
+do_init_all() {
+  if [[ ! -d "$GENIE_SKILLS_DIR" ]]; then
+    echo "Error: Genie skills directory not found: ${GENIE_SKILLS_DIR}" >&2
+    echo "  Run 'hms' to deploy genie skills via Home Manager." >&2
+    exit 1
+  fi
+
+  # --init-all では STEERING_SKILL_MD による override を無効化
+  # （全スキルに同じファイルが配られるのを防ぐ）
+  unset STEERING_SKILL_MD
+
+  local count=0
+  for skill_dir in "${GENIE_SKILLS_DIR}"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    local skill_file="${skill_dir}SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+
+    local skill_name
+    skill_name=$(basename "$skill_dir")
+    validate_skill_name "$skill_name"
+
+    do_init "$skill_name"
+    count=$((count + 1))
+  done
+
+  if [[ $count -eq 0 ]]; then
+    echo "Warning: no skills found in ${GENIE_SKILLS_DIR}" >&2
+  else
+    echo ""
+    echo "Deployed ${count} skill(s)."
   fi
 }
 
@@ -169,10 +167,10 @@ do_sync() {
 
   if [[ "$DRY_RUN" == true ]]; then
     echo "[dry-run] databricks sync ${sync_flags[*]} $steering_dir $remote_dir"
-    databricks sync "${sync_flags[@]}" --dry-run "$steering_dir" "$remote_dir" "${DB_PROFILE_FLAG[@]}"
+    databricks sync "${sync_flags[@]}" --dry-run "$steering_dir" "$remote_dir" ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"}
   else
     echo "Syncing steering docs to ${remote_dir} ..."
-    databricks sync "${sync_flags[@]}" "$steering_dir" "$remote_dir" "${DB_PROFILE_FLAG[@]}"
+    databricks sync "${sync_flags[@]}" "$steering_dir" "$remote_dir" ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"}
     echo "Done."
   fi
 }
@@ -200,7 +198,7 @@ do_pull() {
   trap 'rm -rf "${tmp_dir:-}"; [[ -n "${CLEANUP_DIR:-}" ]] && rm -rf "$CLEANUP_DIR"' EXIT
 
   echo "Pulling remote steering docs ..." >&2
-  if ! databricks workspace export-dir "${remote_dir}" "${tmp_dir}" --overwrite "${DB_PROFILE_FLAG[@]}"; then
+  if ! databricks workspace export-dir "${remote_dir}" "${tmp_dir}" --overwrite ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"}; then
     echo "Error: failed to export from ${remote_dir}. Check that the remote directory exists." >&2
     exit 1
   fi
@@ -260,7 +258,7 @@ do_pull_dry_run() {
   local remote_dir="$_pull_remote_dir"
 
   echo "Remote files in ${remote_dir}:"
-  databricks workspace list "${remote_dir}" "${DB_PROFILE_FLAG[@]}" --output text 2>/dev/null || {
+  databricks workspace list "${remote_dir}" ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"} --output text 2>/dev/null || {
     echo "Error: remote directory not found: ${remote_dir}" >&2
     exit 1
   }
@@ -281,7 +279,7 @@ do_pull_force() {
   # 一時ディレクトリに取得してから *.md のみコピー（push と同じスコープ）
   local tmp_dir
   tmp_dir=$(mktemp -d)
-  if ! databricks workspace export-dir "${remote_dir}" "${tmp_dir}" --overwrite "${DB_PROFILE_FLAG[@]}"; then
+  if ! databricks workspace export-dir "${remote_dir}" "${tmp_dir}" --overwrite ${DB_PROFILE_FLAG[@]+"${DB_PROFILE_FLAG[@]}"}; then
     rm -rf "$tmp_dir"
     echo "Error: failed to export from ${remote_dir}" >&2
     exit 1
@@ -308,7 +306,8 @@ trap '[[ -n "$CLEANUP_DIR" ]] && rm -rf "$CLEANUP_DIR"' EXIT
 
 if [[ $# -lt 1 ]]; then
   echo "Usage:" >&2
-  echo "  $0 [--dry-run] [--profile <name>] --init [skill-name]            # Deploy SKILL.md" >&2
+  echo "  $0 [--dry-run] [--profile <name>] --init [skill-name]            # Deploy single skill" >&2
+  echo "  $0 [--dry-run] [--profile <name>] --init-all                     # Deploy all Genie skills" >&2
   echo "  $0 [--dry-run] [--profile <name>] [--full|--watch] <steering-dir> # Push steering docs" >&2
   echo "  $0 [--dry-run] [--profile <name>] --pull [--force] <steering-dir>  # Pull steering docs" >&2
   exit 1
@@ -345,8 +344,8 @@ while [[ $# -gt 0 && "$1" == --* ]]; do
       FORCE_MODE=true
       shift
       ;;
-    --init)
-      break # --init はオプションではなくサブコマンド
+    --init | --init-all)
+      break # サブコマンドとして処理
       ;;
     *)
       echo "Error: unknown option: $1" >&2
@@ -358,6 +357,14 @@ done
 if [[ $# -lt 1 ]]; then
   echo "Error: missing argument" >&2
   exit 1
+fi
+
+# --init-all サブコマンド
+if [[ "$1" == "--init-all" ]]; then
+  check_deps
+  check_auth
+  do_init_all
+  exit 0
 fi
 
 # --init サブコマンド

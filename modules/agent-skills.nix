@@ -132,6 +132,11 @@ in
         source = ../config/agents/scripts/sync-to-genie.sh;
         executable = true;
       };
+      # Genie Code 用スキル（sync-to-genie.sh --init-all で Databricks にデプロイ）
+      ".claude/genie-skills" = {
+        source = ../config/genie/skills;
+        recursive = true;
+      };
       # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
       ".claude/scripts/setup-web.sh" = {
         source = ../setup-web.sh;

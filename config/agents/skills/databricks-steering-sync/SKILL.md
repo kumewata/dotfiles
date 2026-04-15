@@ -85,7 +85,11 @@ diff 出力を解析し、以下のマージ戦略に従う:
 Genie Code 用の SKILL.md を Databricks Workspace にデプロイする:
 
 ```bash
+# 単一スキルをデプロイ
 ~/.claude/scripts/sync-to-genie.sh --init [skill-name]
+
+# ~/.claude/genie-skills/ 配下の全スキルを一括デプロイ
+~/.claude/scripts/sync-to-genie.sh --init-all
 ```
 
 ## 注意事項
