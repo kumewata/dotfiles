@@ -306,7 +306,7 @@ trap '[[ -n "$CLEANUP_DIR" ]] && rm -rf "$CLEANUP_DIR"' EXIT
 
 if [[ $# -lt 1 ]]; then
   echo "Usage:" >&2
-  echo "  $0 [--dry-run] [--profile <name>] --init [skill-name]            # Deploy single skill" >&2
+  echo "  $0 [--dry-run] [--profile <name>] --init <skill-name>            # Deploy single skill" >&2
   echo "  $0 [--dry-run] [--profile <name>] --init-all                     # Deploy all Genie skills" >&2
   echo "  $0 [--dry-run] [--profile <name>] [--full|--watch] <steering-dir> # Push steering docs" >&2
   echo "  $0 [--dry-run] [--profile <name>] --pull [--force] <steering-dir>  # Pull steering docs" >&2
@@ -369,7 +369,12 @@ fi
 
 # --init サブコマンド
 if [[ "$1" == "--init" ]]; then
-  SKILL_NAME="${2:-project-steering}"
+  SKILL_NAME="${2:-}"
+  if [[ -z "$SKILL_NAME" ]]; then
+    echo "Error: skill name is required. Usage: $0 --init <skill-name>" >&2
+    echo "Hint: use --init-all to deploy all skills under \$GENIE_SKILLS_DIR" >&2
+    exit 1
+  fi
   validate_skill_name "$SKILL_NAME"
   check_deps
   check_auth

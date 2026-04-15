@@ -1,0 +1,64 @@
+---
+task: <task-id>
+dashboard_id: <databricks-dashboard-id>
+source_steering: <requirements.md / design.md への相対リンク or 絶対パス>
+generated_at: <YYYY-MM-DD>
+---
+
+# Lakeview Handoff: <task title>
+
+## 背景 (なぜこの変更が必要か)
+
+<requirements.md から 2-3 行で要約。ステークホルダーと期限も明示>
+
+## データセット (Claude Code 側で確定済み)
+
+- source dataset: `<dataset name in dashboard JSON>`
+- SQL 配置: <repo 内パス or 下に embed>
+- スキーマ:
+
+  | column | type | 用途 | format ルール |
+  |--------|------|------|---------------|
+  | <col>  | <date/string/number> | <用途> | <FORMAT_NUMBER, COALESCE, etc.> |
+
+- dbt / Snowflake 依存:
+  - <触るな / 変更時は Claude Code に戻す>
+
+## ページ・ウィジェット仕様
+
+### Page 1: <page name>
+
+#### Widget 1.1: <widget name> (type: counter | table | bar | line | pivot | pie)
+
+- 目的: <1 行>
+- encoding:
+  - x: `<column>` (type: <temporal | nominal | quantitative | ordinal>)
+  - y: `<column>` (type: <quantitative | ordinal>, aggregation: <sum | avg | count>)
+  - color: `<column>` (type: <nominal | ordinal>, optional)
+- format:
+  - NULL → "—" (SQL 側で COALESCE 適用済み)
+  - 数値: `FORMAT_NUMBER(val, '#,##0')` 適用済み
+- レイアウト: width=<N>, height=<N>, position=<order>
+- **既知制約 (この widget で効かないもの)**:
+  - <該当ウィジェット型の非対応機能。lakeview-pitfalls SKILL.md 参照>
+
+<!-- ウィジェットが複数ある場合は #### Widget X.Y セクションを複製 -->
+
+## 絶対に触らない (Genie Code 側で変更禁止)
+
+- SQL 本体 (dbt mart 参照部)
+- データセット名
+- dashboard_id
+- <その他、変更を許さない箇所があれば追記>
+
+## 受入条件
+
+- [ ] 全ページが表示される
+- [ ] 数値が空欄にならない (encoding type が明示されている)
+- [ ] <その他、検証可能な条件>
+
+## Implementation Log (Genie Code が追記)
+
+<!-- 追記フォーマット: -->
+<!-- YYYY-MM-DD (vXX): <widget> を <変更内容>。理由: <理由>。 -->
+<!-- 例: 2026-04-15 (v3): bar widget の axis.values 設定を削除 (Lakeview で非対応のため)。代わりに ORDER BY で並び制御。 -->
