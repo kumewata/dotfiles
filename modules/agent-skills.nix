@@ -434,7 +434,6 @@ in
         cleanupPeriodDays = 720;
         enableAllProjectMcpServers = false;
         permissions = {
-          disableBypassPermissionsMode = "disable";
           additionalDirectories = [
             "~/.local/state/steering"
           ];
