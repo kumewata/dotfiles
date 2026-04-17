@@ -67,7 +67,7 @@ test -f "$TASK_DIR/requirements.md" && test -f "$TASK_DIR/design.md" || echo "st
 - ページ・ウィジェット仕様: ページ名 → ウィジェット仕様（type, encoding, format, レイアウト, **既知制約**)
 - 絶対に触らない: SQL 本体、データセット名、dashboard_id
 - 受入条件: 検証可能な箇条書き
-- Implementation Log: 空コメントのみ（Genie Code が追記する）
+- Implementation Log: 空 (基本は Genie Code が直接追記、書き戻し失敗時はフォールバック経由で Claude Code が追記)
 
 ### Step 5: Genie Code workspace に push
 
@@ -77,15 +77,29 @@ test -f "$TASK_DIR/requirements.md" && test -f "$TASK_DIR/design.md" || echo "st
 
 push 後、Genie Code セッション側で同タスクディレクトリ内の `lakeview-handoff.md` が読み取れるようになる。
 
-### Step 6: pull 後の取り込み
+### Step 6: Implementation Log の取り込み (二段構え)
 
-Genie Code が実装を完了し Implementation Log を追記した後:
+Genie Code の実装完了後、Implementation Log を取り込む。
+
+#### 6a. 基本フロー: pull して確認
 
 ```bash
 ~/.claude/scripts/sync-to-genie.sh --pull "$TASK_DIR"
 ```
 
-降りてきた Implementation Log を読み:
+`lakeview-handoff.md` の "Implementation Log" セクションに Genie Code が直接追記していれば (基本フロー成功)、その内容をそのまま確認して完了。
+
+#### 6b. フォールバック: ユーザーから受け取って追記
+
+pull 後に Implementation Log が空 (Genie Code の書き戻しが失敗していた場合):
+
+1. ユーザーから Genie Code チャット欄の **Implementation Report** を受け取る (ペーストまたは自然言語で伝達)
+2. 受け取った内容を `lakeview-handoff.md` の "Implementation Log" セクションに追記する
+3. `sync-to-genie.sh "$TASK_DIR"` で workspace 側にも反映
+
+#### 6c. 共通: 学びの反映
+
+取り込み方法を問わず、Implementation Log の内容から:
 
 - 今後の handoff に活かせる学び (ハマったポイント、効いた対策) を feedback memory に保存
 - 必要なら `references/constraints.md` を更新（同じ pitfall を二度踏まないため）

@@ -18,6 +18,15 @@ description: |
 
 ---
 
+## 環境制約 (最重要)
+
+**Dashboard context の Genie Code は SQL warehouse にバインドされている**。マークダウンファイルの直接編集は成功するケースと失敗するケースの両方が確認されており、安定条件は未特定。
+
+- **成功するとき**: workspace files への書き込みがそのまま通る
+- **失敗するとき**: `Unsupported cell during execution. SQL warehouses only support executing SQL cells.` エラー
+- Python セル・shell セルも同じエラーで不可になる場合がある
+- **対策**: `steering-lakeview-handoff` スキルの Step 4 で「直接書き戻し → 失敗時はチャット欄に出力」のフォールバック構成を採用
+
 ## 共通ルール Top 5 (インライン要約)
 
 1. **encoding `type` は必ず明示する** (`quantitative` / `nominal` / `temporal`)。省略すると列が空欄になるバグを踏む
@@ -70,6 +79,12 @@ description: |
 | セル内条件付き書式 | セル値による色付け 不可          | 色付け不要なメトリクスに絞る      |
 | 小計行             | 自動小計表示 不可                | SQL `UNION ALL` で小計行を行展開  |
 | 行・列の動的入替   | UI で自由に入替不可 (定義時固定) | rows / columns を要件確定後に設計 |
+
+**知っておくと便利なパターン**:
+
+- **`columns=[]` (空配列) で 1 軸 pivot が作れる**: columns ディメンションなしの pivot が通る。rows にメトリクス名、values に値を置く「縦持ちテーブル」パターン。実績確認済み
+- **カスタムソートは先頭全角スペース付きカテゴリ値で実現**: `rows` の値に `'　スタンダード'` / `'　プレミアム'` のように先頭全角スペースを付けると、Lakeview のデフォルトソートで意図した順序になる。SQL 側でカテゴリ値を制御する
+- **encoding `type` は省略可**: pivot では `fieldName` / `displayName` のみ指定し `type` を省略しても安全動作する (テーブルの新規カラム type 例外と同様)
 
 ### counter
 

@@ -57,8 +57,13 @@ generated_at: <YYYY-MM-DD>
 - [ ] 数値が空欄にならない (encoding type が明示されている)
 - [ ] <その他、検証可能な条件>
 
-## Implementation Log (Genie Code が追記)
+## Implementation Log
+
+基本は Genie Code が直接追記する。書き戻しが失敗した場合 (Dashboard context の環境制約)、Genie Code はチャット欄に Implementation Report を出力し、ユーザー経由で Claude Code が本セクションに追記する。
 
 <!-- 追記フォーマット: -->
-<!-- YYYY-MM-DD (vXX): <widget> を <変更内容>。理由: <理由>。 -->
-<!-- 例: 2026-04-15 (v3): bar widget の axis.values 設定を削除 (Lakeview で非対応のため)。代わりに ORDER BY で並び制御。 -->
+<!-- YYYY-MM-DD (vXX): <Task X> 実装完了。 -->
+<!-- - <変更点 1> -->
+<!-- - 受入条件: <チェック結果> -->
+<!-- Published URL: <URL> -->
+<!-- Revision: <revisionId> -->
