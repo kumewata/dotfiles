@@ -9,6 +9,7 @@
   # モジュールの読み込み
   imports = [
     ./modules/agent-skills.nix
+    ./modules/apm.nix
     ./modules/git.nix
     ./modules/launchd.nix
     ./modules/packages.nix
