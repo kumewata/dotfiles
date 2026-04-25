@@ -1,0 +1,28 @@
+lockfile_version: "1"
+generated_at: "2026-04-25T14:23:31.888177+00:00"
+apm_version: 0.9.2
+dependencies:
+  - repo_url: anthropics/skills
+    host: github.com
+    resolved_commit: 5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
+    resolved_ref: 5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
+    package_type: apm_package
+    deployed_files:
+      - .claude/skills/algorithmic-art
+      - .claude/skills/brand-guidelines
+      - .claude/skills/canvas-design
+      - .claude/skills/claude-api
+      - .claude/skills/doc-coauthoring
+      - .claude/skills/docx
+      - .claude/skills/frontend-design
+      - .claude/skills/internal-comms
+      - .claude/skills/mcp-builder
+      - .claude/skills/pdf
+      - .claude/skills/pptx
+      - .claude/skills/skill-creator
+      - .claude/skills/slack-gif-creator
+      - .claude/skills/theme-factory
+      - .claude/skills/web-artifacts-builder
+      - .claude/skills/webapp-testing
+      - .claude/skills/xlsx
+    content_hash: sha256:0298046fc0f4dc458e46a275d981178f506f1f53a32eaa351bfce7433478f578

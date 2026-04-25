@@ -1,0 +1,9 @@
+name: vendored
+version: 1.0.0
+description: APM project for vendored
+author: kumewata
+dependencies:
+  apm:
+    - anthropics/skills#5128e1865d670f5d6c9cef000e6dfc4e951fb5b9
+  mcp: []
+scripts: {}

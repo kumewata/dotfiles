@@ -20,6 +20,11 @@ pre-commit run --all-files
 
 # Update flake inputs
 nix flake update
+
+# 3rd-party agent skill 管理（apm 経由）
+cd config/agents/vendored
+apm install <owner>/<repo>#<sha> -t claude   # SHA pin 必須（drift 防止）
+apm audit                                     # 隠しUnicode検出
 ```
 
 ## Architecture
@@ -34,6 +39,7 @@ nix flake update
   - `shell.nix` - Zsh config with Oh My Zsh, shell aliases, and `initExtra` scripts (mise, gcloud, Java, etc.)
   - `git.nix` - Git の設定（gitignore 等）。
   - `agent-skills.nix` - エージェント関連の統一管理モジュール。[agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) によるスキルデプロイ（`~/.claude/skills/`, `~/.agents/skills/`）に加え、Codex 互換パス `~/.codex/skills/` の維持、エージェント定義・コマンド・ルール・スクリプトのデプロイ、Claude Code グローバル設定（`~/.claude/settings.json`）、Codex CLI ルール（`~/.codex/rules/`）も管理。
+  - `apm.nix` - [Microsoft APM](https://github.com/microsoft/apm) CLI を release tarball から fetchurl で取得して Nix 管理化。3rd-party agent skill の宣言的・lock 付き管理に使用。PyInstaller bundle のため `dontStrip` / `dontFixup` / `dontPatchELF` を全て無効化。
 - `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。Lakeview ダッシュボード設計者用の `steering-lakeview-handoff` 等を含む。
 - `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件を定義。
 - `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）と検索用エージェント（steering-research, doc-search）を含む。
@@ -41,6 +47,7 @@ nix flake update
 - `config/agents/skills/orchestrate/` - Claude Code の `/orchestrate` と同じ運用意図を Codex でも使えるようにした共通オーケストレーションスキル。`~/.agents/skills/` にデプロイされ、移行期間は `~/.codex/skills/` からも参照できる。
 - `config/agents/scripts/` - Claude Code 用のヘルパースクリプト。`~/.claude/scripts/` にデプロイ。statusline 表示用スクリプト・`sync-to-genie.sh`（Databricks Genie Code 同期）等を含む。
 - `config/genie/skills/` - Databricks Genie Code 用スキル定義。`agent-skills.nix` で `~/.claude/genie-skills/` にデプロイされ、`sync-to-genie.sh --init-all` で Databricks Workspace の `.assistant/skills/` に push される。Lakeview ウィジェット実装者用の `steering-lakeview-handoff`（Claude Code 側スキルと対称）と `lakeview-pitfalls`（pitfall カタログ）を含む。
+- `config/agents/vendored/` - 3rd-party agent skill の vendor 先。`apm.yml` で依存宣言、`apm.lock.yaml` で SHA pin、`apm install` 実行で `.claude/skills/` 配下に integrated output を生成。実験段階では integrated output を gitignore で除外（vendor-commit に切り替える場合は `.gitignore` から `.claude/` を削除）。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions
@@ -74,3 +81,40 @@ nix flake update
 4. `sync-to-genie.sh --init-all` で Databricks Workspace `.assistant/skills/` に push
 
 **重要**: `sync-to-genie.sh --init-all` は **SKILL.md のみ** をアップロードする。`references/` や `templates/` サブディレクトリは Databricks workspace に転送されないため、Genie Code が参照する必要のある内容は SKILL.md にインライン化する必要がある。
+
+## Third-Party Agent Skills (apm)
+
+3rd-party agent skill（`anthropics/skills`、`mizchi/skills` 等）は **apm 経由で `config/agents/vendored/` に vendor** する。自作スキルは従来どおり `config/agents/skills/` に置き、`agent-skills-nix` でデプロイする（**自作スキルを別 repo に切り出さない方針**）。
+
+**apm 互換性の判断**:
+
+| repo の構造                                                             | apm | gh skill | 備考                                                        |
+| ----------------------------------------------------------------------- | --- | -------- | ----------------------------------------------------------- |
+| repo root に `apm.yml` または `.apm/` がある（例: `anthropics/skills`） | ✅  | ✅       | apm を使う                                                  |
+| repo root 直下に `<name>/SKILL.md` が並ぶ（例: `mizchi/skills`）        | ❌  | ✅       | apm 不可。`gh skill install <repo> <name> -t claude` を使う |
+| 単独 SKILL.md（repo がそのまま 1 skill）                                | ✅  | ✅       | どちらでも可                                                |
+
+**apm 経由のワークフロー**:
+
+```bash
+cd config/agents/vendored
+
+# 新規追加（必ず SHA pin する。warning が出たら未 pin）
+apm install <owner>/<repo>#<commit-sha> -t claude
+
+# audit で隠しUnicode検出（commit 前必須）
+apm audit
+
+# 出力構造: vendored/.claude/skills/<skill-name>/
+ls .claude/skills/
+
+# apm.yml + apm.lock.yaml を必ず commit
+git add apm.yml apm.lock.yaml
+```
+
+**重要事項**:
+
+- **SHA pin 必須**: `<repo>#main` ではドリフトする。`apm.lock.yaml` の `resolved_commit` から取得して pin する
+- **`apm_modules/` は gitignore 済**（apm が自動生成）。raw download は git 管理外
+- **`apm audit` で `info-level` 以上の検出が出たら commit 前に確認**（プロンプトインジェクション対策）
+- **frontmatter に source tracking なし**: `gh skill` と異なり、出所追跡は `apm.lock.yaml` のみ。lock 必ず commit すること

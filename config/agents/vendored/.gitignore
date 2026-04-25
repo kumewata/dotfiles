@@ -1,0 +1,8 @@
+
+# APM dependencies
+apm_modules/
+
+# 実験段階: integrated output はまだ commit せず、framework のみ管理。
+# 本番統合（agent-skills.nix 2-source 化）時に vendor-commit する場合は
+# 以下の行を削除する。
+.claude/
