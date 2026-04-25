@@ -1,14 +1,19 @@
 ---
-name: pdf
 description: Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.
 license: Proprietary. LICENSE.txt has complete terms
+metadata:
+  github-path: skills/pdf
+  github-ref: refs/heads/main
+  github-repo: https://github.com/anthropics/skills
+  github-tree-sha: 6369f4649de69bd6857c9bc3b058a77206009238
+name: pdf
 ---
 
 # PDF Processing Guide
 
 ## Overview
 
-This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see `reference.md`. If you need to fill out a PDF form, read `forms.md` and follow its instructions.
+This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see REFERENCE.md. If you need to fill out a PDF form, read FORMS.md and follow its instructions.
 
 ## Quick Start
 
@@ -312,20 +317,20 @@ with open("encrypted.pdf", "wb") as output:
 
 ## Quick Reference
 
-| Task               | Best Tool                         | Command/Code               |
-| ------------------ | --------------------------------- | -------------------------- |
-| Merge PDFs         | pypdf                             | `writer.add_page(page)`    |
-| Split PDFs         | pypdf                             | One page per file          |
-| Extract text       | pdfplumber                        | `page.extract_text()`      |
-| Extract tables     | pdfplumber                        | `page.extract_tables()`    |
-| Create PDFs        | reportlab                         | Canvas or Platypus         |
-| Command line merge | qpdf                              | `qpdf --empty --pages ...` |
-| OCR scanned PDFs   | pytesseract                       | Convert to image first     |
-| Fill PDF forms     | pdf-lib or pypdf (see `forms.md`) | See `forms.md`             |
+| Task               | Best Tool                       | Command/Code               |
+| ------------------ | ------------------------------- | -------------------------- |
+| Merge PDFs         | pypdf                           | `writer.add_page(page)`    |
+| Split PDFs         | pypdf                           | One page per file          |
+| Extract text       | pdfplumber                      | `page.extract_text()`      |
+| Extract tables     | pdfplumber                      | `page.extract_tables()`    |
+| Create PDFs        | reportlab                       | Canvas or Platypus         |
+| Command line merge | qpdf                            | `qpdf --empty --pages ...` |
+| OCR scanned PDFs   | pytesseract                     | Convert to image first     |
+| Fill PDF forms     | pdf-lib or pypdf (see FORMS.md) | See FORMS.md               |
 
 ## Next Steps
 
-- For advanced pypdfium2 usage, see `reference.md`
-- For JavaScript libraries (pdf-lib), see `reference.md`
-- If you need to fill out a PDF form, follow the instructions in `forms.md`
-- For troubleshooting guides, see `reference.md`
+- For advanced pypdfium2 usage, see REFERENCE.md
+- For JavaScript libraries (pdf-lib), see REFERENCE.md
+- If you need to fill out a PDF form, follow the instructions in FORMS.md
+- For troubleshooting guides, see REFERENCE.md

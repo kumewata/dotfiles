@@ -61,10 +61,18 @@ in
   programs.agent-skills = {
     enable = true;
 
-    # スキルソース（このリポジトリの config/agents/skills/）
-    sources.local = {
-      path = inputs.self;
-      subdir = "config/agents/skills";
+    # スキルソース
+    # - local: 自作スキル（config/agents/skills/）
+    # - third-party: gh skill で個別取得した 3rd-party スキル（config/agents/third-party/）
+    sources = {
+      local = {
+        path = inputs.self;
+        subdir = "config/agents/skills";
+      };
+      third-party = {
+        path = inputs.self;
+        subdir = "config/agents/third-party";
+      };
     };
 
     # 全スキルを有効化

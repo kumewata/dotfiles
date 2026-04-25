@@ -47,7 +47,8 @@ apm audit                                     # 隠しUnicode検出
 - `config/agents/skills/orchestrate/` - Claude Code の `/orchestrate` と同じ運用意図を Codex でも使えるようにした共通オーケストレーションスキル。`~/.agents/skills/` にデプロイされ、移行期間は `~/.codex/skills/` からも参照できる。
 - `config/agents/scripts/` - Claude Code 用のヘルパースクリプト。`~/.claude/scripts/` にデプロイ。statusline 表示用スクリプト・`sync-to-genie.sh`（Databricks Genie Code 同期）等を含む。
 - `config/genie/skills/` - Databricks Genie Code 用スキル定義。`agent-skills.nix` で `~/.claude/genie-skills/` にデプロイされ、`sync-to-genie.sh --init-all` で Databricks Workspace の `.assistant/skills/` に push される。Lakeview ウィジェット実装者用の `steering-lakeview-handoff`（Claude Code 側スキルと対称）と `lakeview-pitfalls`（pitfall カタログ）を含む。
-- `config/agents/vendored/` - 3rd-party agent skill の vendor 先。`apm.yml` で依存宣言、`apm.lock.yaml` で SHA pin、`apm install` 実行で `.claude/skills/` 配下に integrated output を生成。実験段階では integrated output を gitignore で除外（vendor-commit に切り替える場合は `.gitignore` から `.claude/` を削除）。
+- `config/agents/vendored/` - 3rd-party agent skill の vendor 先（apm-互換 repo の **全体取り込み** 用）。`apm.yml` で依存宣言、`apm.lock.yaml` で SHA pin、`apm install` 実行で `.claude/skills/` 配下に integrated output を生成。実験段階では integrated output を gitignore で除外（vendor-commit に切り替える場合は `.gitignore` から `.claude/` を削除）。
+- `config/agents/third-party/` - gh skill で **個別取得** した 3rd-party スキル（`anthropics/skills` の `pdf` / `skill-creator` / `xlsx` 等）の実体。`agent-skills-nix` の 2nd source として deploy される。frontmatter に `github-repo`/`github-ref`/`github-tree-sha`/`github-path` が注入され出所追跡可能。
 - `.zshrc` - Legacy standalone zsh config (being migrated into `modules/shell.nix`).
 
 ## Nix Conventions
@@ -86,13 +87,26 @@ apm audit                                     # 隠しUnicode検出
 
 3rd-party agent skill（`anthropics/skills`、`mizchi/skills` 等）は **apm 経由で `config/agents/vendored/` に vendor** する。自作スキルは従来どおり `config/agents/skills/` に置き、`agent-skills-nix` でデプロイする（**自作スキルを別 repo に切り出さない方針**）。
 
-**apm 互換性の判断**:
+**apm 互換性と選別の判断**:
 
-| repo の構造                                                             | apm | gh skill | 備考                                                        |
-| ----------------------------------------------------------------------- | --- | -------- | ----------------------------------------------------------- |
-| repo root に `apm.yml` または `.apm/` がある（例: `anthropics/skills`） | ✅  | ✅       | apm を使う                                                  |
-| repo root 直下に `<name>/SKILL.md` が並ぶ（例: `mizchi/skills`）        | ❌  | ✅       | apm 不可。`gh skill install <repo> <name> -t claude` を使う |
-| 単独 SKILL.md（repo がそのまま 1 skill）                                | ✅  | ✅       | どちらでも可                                                |
+| ケース                                                                       | ツール   | 配置先                       |
+| ---------------------------------------------------------------------------- | -------- | ---------------------------- |
+| apm-互換 repo（`apm.yml` or `.apm/` あり）の **全体** を取り込みたい         | apm      | `config/agents/vendored/`    |
+| apm-互換 repo（例: `anthropics/skills`）から **個別 skill だけ** 欲しい      | gh skill | `config/agents/third-party/` |
+| apm 非互換 repo（例: `mizchi/skills`、root 直下に `<name>/SKILL.md` が並ぶ） | gh skill | `config/agents/third-party/` |
+| 単独 SKILL.md（repo がそのまま 1 skill）                                     | どちらも | 用途に応じて                 |
+
+**個別取得（gh skill）のワークフロー**:
+
+```bash
+# repo root から実行（cwd 不問、--dir で配置先を明示する）
+gh skill install <owner>/<repo> <skill-name> --dir config/agents/third-party --force
+
+# 出力構造: config/agents/third-party/<skill-name>/
+ls config/agents/third-party/
+```
+
+`gh skill` の `--scope project` は git repo root の `.claude/skills/` に配置するため、本リポジトリでは **必ず `--dir config/agents/third-party` を使う**（`.gitignore` で `.claude/skills/` は除外済）。
 
 **apm 経由のワークフロー**:
 

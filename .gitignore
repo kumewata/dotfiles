@@ -4,3 +4,5 @@
 .zshrc.legacy
 # home-manager build が生成する Nix store へのシンボリックリンク
 result
+# gh skill が誤ってリポジトリルートに作成する場合がある（正しい配置先は config/agents/third-party/）
+.claude/skills/
