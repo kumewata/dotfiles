@@ -41,7 +41,7 @@ apm audit                                     # 隠しUnicode検出
   - `agent-skills.nix` - エージェント関連の統一管理モジュール。[agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) によるスキルデプロイ（`~/.claude/skills/`, `~/.agents/skills/`）に加え、Codex 互換パス `~/.codex/skills/` の維持、エージェント定義・コマンド・ルール・スクリプトのデプロイ、Claude Code グローバル設定（`~/.claude/settings.json`）、Codex CLI ルール（`~/.codex/rules/`）も管理。
   - `apm.nix` - [Microsoft APM](https://github.com/microsoft/apm) CLI を release tarball から fetchurl で取得して Nix 管理化。3rd-party agent skill の宣言的・lock 付き管理に使用。PyInstaller bundle のため `dontStrip` / `dontFixup` / `dontPatchELF` を全て無効化。
 - `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。Lakeview ダッシュボード設計者用の `steering-lakeview-handoff` 等を含む。
-- `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件を定義。
+- `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件と自律実行方針を定義する。Codex 向けのリポジトリ行動ルールは `AGENTS.md`、CLI 権限ルールは `~/.codex/rules/nix-managed.rules` で管理する。
 - `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）と検索用エージェント（steering-research, doc-search）を含む。
 - `config/agents/commands/` - Claude Code のカスタムコマンド。`~/.claude/commands/` にデプロイ。`/orchestrate` コマンドで複数エージェントの sequential pipeline を実行。
 - `config/agents/skills/orchestrate/` - Claude Code の `/orchestrate` と同じ運用意図を Codex でも使えるようにした共通オーケストレーションスキル。`~/.agents/skills/` にデプロイされ、移行期間は `~/.codex/skills/` からも参照できる。

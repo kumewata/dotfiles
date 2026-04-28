@@ -173,31 +173,61 @@ in
         prefix_rule(pattern=["git", "rev-parse"], decision="allow")
         prefix_rule(pattern=["git", "ls-files"], decision="allow")
         prefix_rule(pattern=["git", "shortlog"], decision="allow")
+        prefix_rule(pattern=["git", "grep"], decision="allow")
+        prefix_rule(pattern=["git", "ls-tree"], decision="allow")
+        prefix_rule(pattern=["git", "for-each-ref"], decision="allow")
+        prefix_rule(pattern=["git", "merge-base"], decision="allow")
         prefix_rule(pattern=["git", "config", "--get"], decision="allow")
         prefix_rule(pattern=["git", "config", "--list"], decision="allow")
 
         # GitHub CLI（read-only 系のみ）
         prefix_rule(pattern=["gh", "pr", "view"], decision="allow")
+        prefix_rule(pattern=["gh", "pr", "list"], decision="allow")
+        prefix_rule(pattern=["gh", "pr", "diff"], decision="allow")
+        prefix_rule(pattern=["gh", "pr", "checks"], decision="allow")
+        prefix_rule(pattern=["gh", "pr", "status"], decision="allow")
         prefix_rule(pattern=["gh", "run", "list"], decision="allow")
         prefix_rule(pattern=["gh", "run", "view"], decision="allow")
         prefix_rule(pattern=["gh", "issue", "view"], decision="allow")
+        prefix_rule(pattern=["gh", "issue", "list"], decision="allow")
+        prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
+        prefix_rule(pattern=["gh", "release", "list"], decision="allow")
+        prefix_rule(pattern=["gh", "release", "view"], decision="allow")
 
         # Package managers（read / build / test）
+        prefix_rule(pattern=["npm", "--version"], decision="allow")
+        prefix_rule(pattern=["npm", "help"], decision="allow")
         prefix_rule(pattern=["npm", "run"], decision="allow")
         prefix_rule(pattern=["npm", "test"], decision="allow")
         prefix_rule(pattern=["npm", "ci"], decision="allow")
         prefix_rule(pattern=["npm", "ls"], decision="allow")
         prefix_rule(pattern=["npm", "outdated"], decision="allow")
         prefix_rule(pattern=["npm", "info"], decision="allow")
+        prefix_rule(pattern=["npm", "view"], decision="allow")
+        prefix_rule(pattern=["pnpm", "--version"], decision="allow")
+        prefix_rule(pattern=["pnpm", "help"], decision="allow")
         prefix_rule(pattern=["pnpm", "run"], decision="allow")
         prefix_rule(pattern=["pnpm", "test"], decision="allow")
         prefix_rule(pattern=["pnpm", "ls"], decision="allow")
+        prefix_rule(pattern=["pnpm", "why"], decision="allow")
+        prefix_rule(pattern=["yarn", "--version"], decision="allow")
+        prefix_rule(pattern=["yarn", "help"], decision="allow")
         prefix_rule(pattern=["yarn", "run"], decision="allow")
         prefix_rule(pattern=["yarn", "test"], decision="allow")
+        prefix_rule(pattern=["yarn", "why"], decision="allow")
+        prefix_rule(pattern=["bun", "--version"], decision="allow")
+        prefix_rule(pattern=["bun", "help"], decision="allow")
         prefix_rule(pattern=["bun", "run"], decision="allow")
         prefix_rule(pattern=["bun", "test"], decision="allow")
 
         # Build tools（safe targets のみ）
+        prefix_rule(pattern=["nix", "--version"], decision="allow")
+        prefix_rule(pattern=["nix", "help"], decision="allow")
+        prefix_rule(pattern=["nix", "flake", "check"], decision="allow")
+        prefix_rule(pattern=["nix", "flake", "show"], decision="allow")
+        prefix_rule(pattern=["nix", "flake", "metadata"], decision="allow")
+        prefix_rule(pattern=["nix", "path-info"], decision="allow")
+        prefix_rule(pattern=["shellcheck"], decision="allow")
         prefix_rule(pattern=["make", "test"], decision="allow")
         prefix_rule(pattern=["make", "build"], decision="allow")
         prefix_rule(pattern=["make", "check"], decision="allow")
@@ -215,6 +245,8 @@ in
         prefix_rule(pattern=["terraform", "output"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "list"], decision="allow")
         prefix_rule(pattern=["terraform", "state", "show"], decision="allow")
+        prefix_rule(pattern=["terraform", "test"], decision="allow")
+        prefix_rule(pattern=["terraform", "version"], decision="allow")
         # Snowflake CLI（read-only 系のみ — snow sql は prompt）
         prefix_rule(pattern=["snow", "sql"], decision="prompt")
         prefix_rule(pattern=["snow", "object", "list"], decision="allow")
@@ -225,8 +257,13 @@ in
 
         # Runtime（バージョン確認・テスト等）
         prefix_rule(pattern=["node", "--version"], decision="allow")
+        prefix_rule(pattern=["node", "--help"], decision="allow")
         prefix_rule(pattern=["python", "--version"], decision="allow")
+        prefix_rule(pattern=["python", "-V"], decision="allow")
         prefix_rule(pattern=["python", "-m", "pytest"], decision="allow")
+        prefix_rule(pattern=["python", "-m", "unittest"], decision="allow")
+        prefix_rule(pattern=["python", "-m", "compileall"], decision="allow")
+        prefix_rule(pattern=["python", "-m", "pip", "--version"], decision="allow")
         prefix_rule(pattern=["python", "-m", "pip", "list"], decision="allow")
         prefix_rule(pattern=["mise"], decision="allow")
 
@@ -265,16 +302,66 @@ in
         # chmod +x は prompt に移動（F-NEW-05: chmod の ask バイパス防止）
         # ── prompt: 確認が必要 ──
 
-        # Nix / GitHub CLI
-        prefix_rule(pattern=["nix"], decision="prompt")
+        # Nix / GitHub CLI（変更・任意実行・認証系）
+        prefix_rule(pattern=["nix", "build"], decision="prompt")
+        prefix_rule(pattern=["nix", "run"], decision="prompt")
+        prefix_rule(pattern=["nix", "develop"], decision="prompt")
+        prefix_rule(pattern=["nix", "shell"], decision="prompt")
+        prefix_rule(pattern=["nix", "fmt"], decision="prompt")
+        prefix_rule(pattern=["nix", "eval"], decision="prompt")
+        prefix_rule(pattern=["nix", "flake", "update"], decision="prompt")
+        prefix_rule(pattern=["nix", "flake", "lock"], decision="prompt")
+        prefix_rule(pattern=["nix", "profile"], decision="prompt")
+        prefix_rule(pattern=["nix", "registry"], decision="prompt")
+        prefix_rule(pattern=["nix", "copy"], decision="prompt")
+        prefix_rule(pattern=["nix", "store"], decision="prompt")
+        prefix_rule(pattern=["nix", "daemon"], decision="prompt")
+        prefix_rule(pattern=["nix", "upgrade-nix"], decision="prompt")
         prefix_rule(pattern=["nix-store"], decision="prompt")
-        prefix_rule(pattern=["gh"], decision="prompt")
+        prefix_rule(pattern=["gh", "api"], decision="prompt")
+        prefix_rule(pattern=["gh", "auth"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "create"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "edit"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "checkout"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "comment"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "review"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "close"], decision="prompt")
+        prefix_rule(pattern=["gh", "pr", "reopen"], decision="prompt")
+        prefix_rule(pattern=["gh", "issue", "create"], decision="prompt")
+        prefix_rule(pattern=["gh", "issue", "edit"], decision="prompt")
+        prefix_rule(pattern=["gh", "issue", "comment"], decision="prompt")
+        prefix_rule(pattern=["gh", "issue", "close"], decision="prompt")
+        prefix_rule(pattern=["gh", "issue", "reopen"], decision="prompt")
+        prefix_rule(pattern=["gh", "repo", "create"], decision="prompt")
+        prefix_rule(pattern=["gh", "repo", "edit"], decision="prompt")
+        prefix_rule(pattern=["gh", "repo", "delete"], decision="prompt")
+        prefix_rule(pattern=["gh", "repo", "fork"], decision="prompt")
+        prefix_rule(pattern=["gh", "release", "create"], decision="prompt")
+        prefix_rule(pattern=["gh", "release", "delete"], decision="prompt")
+        prefix_rule(pattern=["gh", "release", "upload"], decision="prompt")
+        prefix_rule(pattern=["gh", "workflow", "run"], decision="prompt")
+        prefix_rule(pattern=["gh", "run", "cancel"], decision="prompt")
+        prefix_rule(pattern=["gh", "run", "rerun"], decision="prompt")
+        prefix_rule(pattern=["gh", "run", "delete"], decision="prompt")
 
         # Package install / agent invocation
         prefix_rule(pattern=["npm", "install"], decision="prompt")
+        prefix_rule(pattern=["npm", "update"], decision="prompt")
+        prefix_rule(pattern=["npm", "uninstall"], decision="prompt")
+        prefix_rule(pattern=["npm", "exec"], decision="prompt")
+        prefix_rule(pattern=["npx"], decision="prompt")
         prefix_rule(pattern=["pnpm", "install"], decision="prompt")
+        prefix_rule(pattern=["pnpm", "update"], decision="prompt")
+        prefix_rule(pattern=["pnpm", "remove"], decision="prompt")
+        prefix_rule(pattern=["pnpm", "dlx"], decision="prompt")
         prefix_rule(pattern=["yarn", "install"], decision="prompt")
+        prefix_rule(pattern=["yarn", "add"], decision="prompt")
+        prefix_rule(pattern=["yarn", "remove"], decision="prompt")
+        prefix_rule(pattern=["yarn", "dlx"], decision="prompt")
         prefix_rule(pattern=["bun", "install"], decision="prompt")
+        prefix_rule(pattern=["bun", "add"], decision="prompt")
+        prefix_rule(pattern=["bun", "remove"], decision="prompt")
+        prefix_rule(pattern=["bunx"], decision="prompt")
         prefix_rule(pattern=["codex"], decision="prompt")
 
         # リモート影響
@@ -299,11 +386,25 @@ in
         prefix_rule(pattern=["awk"], decision="prompt")
         prefix_rule(pattern=["xargs"], decision="prompt")
         prefix_rule(pattern=["tee"], decision="prompt")
-        # ビルドツール汎用（F-NEW-03）
-        prefix_rule(pattern=["make"], decision="prompt")
-        # 汎用 runtime 実行
-        prefix_rule(pattern=["node"], decision="prompt")
-        prefix_rule(pattern=["python"], decision="prompt")
+        prefix_rule(pattern=["treefmt"], decision="prompt")
+        prefix_rule(pattern=["nixfmt"], decision="prompt")
+        prefix_rule(pattern=["prettier"], decision="prompt")
+        prefix_rule(pattern=["shfmt"], decision="prompt")
+        # ビルドツールの危険ターゲット
+        prefix_rule(pattern=["make", "clean"], decision="prompt")
+        prefix_rule(pattern=["make", "install"], decision="prompt")
+        prefix_rule(pattern=["make", "deploy"], decision="prompt")
+        prefix_rule(pattern=["make", "release"], decision="prompt")
+        prefix_rule(pattern=["make", "publish"], decision="prompt")
+        prefix_rule(pattern=["make", "destroy"], decision="prompt")
+        prefix_rule(pattern=["make", "apply"], decision="prompt")
+        # 汎用 runtime のインライン任意実行・インストール
+        prefix_rule(pattern=["node", "-e"], decision="prompt")
+        prefix_rule(pattern=["node", "--eval"], decision="prompt")
+        prefix_rule(pattern=["python", "-c"], decision="prompt")
+        prefix_rule(pattern=["python", "-"], decision="prompt")
+        prefix_rule(pattern=["python", "-m", "pip", "install"], decision="prompt")
+        prefix_rule(pattern=["python", "-m", "pip", "uninstall"], decision="prompt")
         prefix_rule(pattern=["cargo", "run"], decision="prompt")
 
         # ── forbidden: 完全ブロック ──
@@ -312,6 +413,10 @@ in
         prefix_rule(pattern=["snow", "stage", "copy"], decision="forbidden")
         prefix_rule(pattern=["snow", "object", "create"], decision="forbidden")
         prefix_rule(pattern=["snow", "object", "drop"], decision="forbidden")
+        # Nix store / GC 破壊系
+        prefix_rule(pattern=["nix", "store", "delete"], decision="forbidden")
+        prefix_rule(pattern=["nix-store", "--delete"], decision="forbidden")
+        prefix_rule(pattern=["nix-collect-garbage"], decision="forbidden")
         # システム破壊
         prefix_rule(pattern=["sudo"], decision="forbidden")
         prefix_rule(pattern=["rm", "-rf", "/"], decision="forbidden")
@@ -442,6 +547,7 @@ in
         cleanupPeriodDays = 720;
         enableAllProjectMcpServers = false;
         permissions = {
+          disableBypassPermissionsMode = "disable";
           additionalDirectories = [
             "~/.local/state/steering"
           ];
