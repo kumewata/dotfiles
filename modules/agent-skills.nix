@@ -107,6 +107,7 @@ in
     // {
       # ルール（起動時に全て読み込まれ、スキルの発動トリガーとして機能する）
       ".claude/rules/skill-triggers.md".source = ../config/agents/rules/skill-triggers.md;
+      ".claude/rules/verification-standards.md".source = ../config/agents/rules/verification-standards.md;
       # Codex 互換パス。移行期間は ~/.codex/skills からも同じ内容を参照できるようにする。
       ".codex/skills" = {
         source = config.lib.file.mkOutOfStoreSymlink "${homeDir}/.agents/skills";
