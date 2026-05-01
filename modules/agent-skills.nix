@@ -38,6 +38,8 @@ let
   agentCommands = [
     "orchestrate"
     "update-steering"
+    "tone-capture"
+    "tone-status"
   ];
 
   # 名前リストから home.file エントリを生成するヘルパー
@@ -138,6 +140,19 @@ in
       # Databricks steering 同期スクリプト（databricks-steering-sync スキルから参照）
       ".claude/scripts/sync-to-genie.sh" = {
         source = ../config/agents/scripts/sync-to-genie.sh;
+        executable = true;
+      };
+      # tone skill / tone-capture / tone-status から参照される helper scripts
+      ".claude/scripts/tone-stage-draft.sh" = {
+        source = ../config/agents/scripts/tone-stage-draft.sh;
+        executable = true;
+      };
+      ".claude/scripts/tone-capture.sh" = {
+        source = ../config/agents/scripts/tone-capture.sh;
+        executable = true;
+      };
+      ".claude/scripts/tone-status.sh" = {
+        source = ../config/agents/scripts/tone-status.sh;
         executable = true;
       };
       # Genie Code 用スキル（sync-to-genie.sh --init-all で Databricks にデプロイ）
