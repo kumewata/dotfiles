@@ -12,12 +12,13 @@ Capture a posted final and pair it with a previously staged draft. Argument: `$A
 
 サポートする URL パターン:
 
-| パターン                                                       | 種別                      |
-| -------------------------------------------------------------- | ------------------------- |
-| `https://github.com/<owner>/<repo>/pull/<n>`                   | PR description            |
-| `https://github.com/<owner>/<repo>/pull/<n>#discussion_r<id>`  | PR inline review comment  |
-| `https://github.com/<owner>/<repo>/pull/<n>#issuecomment-<id>` | PR toplevel issue comment |
-| `https://<workspace>.slack.com/archives/<channel>/p<ts>`       | Slack permalink           |
+| パターン                                                            | 種別                       |
+| ------------------------------------------------------------------- | -------------------------- |
+| `https://github.com/<owner>/<repo>/pull/<n>`                        | PR description             |
+| `https://github.com/<owner>/<repo>/pull/<n>#discussion_r<id>`       | PR inline review comment   |
+| `https://github.com/<owner>/<repo>/pull/<n>#issuecomment-<id>`      | PR toplevel issue comment  |
+| `https://github.com/<owner>/<repo>/pull/<n>#pullrequestreview-<id>` | PR review submit body      |
+| `https://<workspace>.slack.com/archives/<channel>/p<ts>`            | Slack permalink            |
 
 これ以外の URL は `tone-capture.sh` 側で exit 2 となる。エラーメッセージをそのままユーザーに返す。
 

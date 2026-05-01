@@ -26,6 +26,7 @@ Supported URLs:
   GitHub PR description:    https://github.com/<owner>/<repo>/pull/<n>
   GitHub PR inline review:  https://github.com/<owner>/<repo>/pull/<n>#discussion_r<id>
   GitHub PR toplevel cmt:   https://github.com/<owner>/<repo>/pull/<n>#issuecomment-<id>
+  GitHub PR review submit:  https://github.com/<owner>/<repo>/pull/<n>#pullrequestreview-<id>
   Slack permalink:          https://<workspace>.slack.com/archives/<channel>/p<ts>
 
 Slack URLs require --final-stdin; the /tone-capture command fetches the body
@@ -106,6 +107,14 @@ elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#issuecommen
   target_type="pr_review"
   gh_subtype="toplevel"
   slug="pr-${pr_num}-c${comment_id}"
+elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#pullrequestreview-([0-9]+)$ ]]; then
+  owner="${BASH_REMATCH[1]}"
+  repo="${BASH_REMATCH[2]}"
+  pr_num="${BASH_REMATCH[3]}"
+  comment_id="${BASH_REMATCH[4]}"
+  target_type="pr_review"
+  gh_subtype="review"
+  slug="pr-${pr_num}-rv${comment_id}"
 elif [[ "$url" =~ ^https://[^.]+\.slack\.com/archives/([^/]+)/p([0-9]+)(\?.*)?$ ]]; then
   slack_channel="${BASH_REMATCH[1]}"
   slack_ts="${BASH_REMATCH[2]}"
@@ -284,6 +293,12 @@ else
     toplevel)
       if ! final_body="$(gh api "repos/${owner}/${repo}/issues/comments/${comment_id}" --jq '.body // ""')"; then
         printf 'tone-capture.sh: gh api failed for issue comment %s\n' "$comment_id" >&2
+        exit 4
+      fi
+      ;;
+    review)
+      if ! final_body="$(gh api "repos/${owner}/${repo}/pulls/${pr_num}/reviews/${comment_id}" --jq '.body // ""')"; then
+        printf 'tone-capture.sh: gh api failed for PR review %s\n' "$comment_id" >&2
         exit 4
       fi
       ;;
