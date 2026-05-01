@@ -31,12 +31,12 @@ gws auth login       # 失効していたら再ログイン（ブラウザが開
 
 代表スコープ（最小権限を選ぶ指針）:
 
-| 用途 | 読み取り専用 | 書き込み込み |
-| --- | --- | --- |
-| Sheets | `spreadsheets.readonly` | `spreadsheets` |
-| Docs | `documents.readonly` + `drive.readonly`（export 用） | `documents` + `drive` |
-| Slides | `presentations.readonly` + `drive.readonly` | `presentations` + `drive` |
-| Drive 検索/export | `drive.readonly` | `drive` |
+| 用途              | 読み取り専用                                         | 書き込み込み              |
+| ----------------- | ---------------------------------------------------- | ------------------------- |
+| Sheets            | `spreadsheets.readonly`                              | `spreadsheets`            |
+| Docs              | `documents.readonly` + `drive.readonly`（export 用） | `documents` + `drive`     |
+| Slides            | `presentations.readonly` + `drive.readonly`          | `presentations` + `drive` |
+| Drive 検索/export | `drive.readonly`                                     | `drive`                   |
 
 参照だけが目的なら `.readonly` スコープでログインする方が安全。
 
@@ -45,12 +45,12 @@ gws auth login       # 失効していたら再ログイン（ブラウザが開
 Google Workspace の URL は `/d/<ID>/` の形でドキュメント ID を含む。
 処理前の第一歩が ID 抽出。
 
-| サービス | URL パターン | 抽出対象 |
-| --- | --- | --- |
-| Sheets | `https://docs.google.com/spreadsheets/d/<ID>/edit` | spreadsheetId |
-| Docs | `https://docs.google.com/document/d/<ID>/edit` | documentId |
-| Slides | `https://docs.google.com/presentation/d/<ID>/edit` | presentationId |
-| Drive file | `https://drive.google.com/file/d/<ID>/view` | fileId |
+| サービス   | URL パターン                                       | 抽出対象       |
+| ---------- | -------------------------------------------------- | -------------- |
+| Sheets     | `https://docs.google.com/spreadsheets/d/<ID>/edit` | spreadsheetId  |
+| Docs       | `https://docs.google.com/document/d/<ID>/edit`     | documentId     |
+| Slides     | `https://docs.google.com/presentation/d/<ID>/edit` | presentationId |
+| Drive file | `https://drive.google.com/file/d/<ID>/view`        | fileId         |
 
 `#gid=123` は Sheets 内のシート（タブ）の内部 ID。range 指定ではシート **名** (`'Sheet1'!A1:B2`) を使う方が確実。
 
@@ -237,12 +237,12 @@ gws drive files list --params '{"pageSize": 100}' --page-all --page-limit 5
 
 主要 MIME type:
 
-| 種類 | mimeType |
-| --- | --- |
-| Sheets | `application/vnd.google-apps.spreadsheet` |
-| Docs | `application/vnd.google-apps.document` |
+| 種類   | mimeType                                   |
+| ------ | ------------------------------------------ |
+| Sheets | `application/vnd.google-apps.spreadsheet`  |
+| Docs   | `application/vnd.google-apps.document`     |
 | Slides | `application/vnd.google-apps.presentation` |
-| Folder | `application/vnd.google-apps.folder` |
+| Folder | `application/vnd.google-apps.folder`       |
 
 ## 6. 共通 Tips
 
