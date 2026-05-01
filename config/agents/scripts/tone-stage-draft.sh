@@ -3,7 +3,7 @@
 #
 # Usage:
 #   tone-stage-draft.sh --context <formal|casual> \
-#                       --target-type <pr_description|pr_review|slack> \
+#                       --target-type <pr_description|pr_review|discussion|slack> \
 #                       [--target-hint "<text>"] < draft_body
 #
 # Stdin から draft 本文を読む。成功時は draft_id だけを stdout に出力する。
@@ -15,7 +15,7 @@ DRAFTS_DIR="${TONE_DIR}/drafts"
 
 usage() {
   cat >&2 <<'EOF'
-Usage: tone-stage-draft.sh --context <formal|casual> --target-type <pr_description|pr_review|slack> [--target-hint "<text>"]
+Usage: tone-stage-draft.sh --context <formal|casual> --target-type <pr_description|pr_review|discussion|slack> [--target-hint "<text>"]
 
 Reads the draft body from stdin. On success, prints the draft_id to stdout.
 EOF
@@ -59,9 +59,9 @@ case "$context" in
 esac
 
 case "$target_type" in
-  pr_description | pr_review | slack) ;;
+  pr_description | pr_review | discussion | slack) ;;
   *)
-    printf 'tone-stage-draft.sh: --target-type must be pr_description|pr_review|slack (got %q)\n' "$target_type" >&2
+    printf 'tone-stage-draft.sh: --target-type must be pr_description|pr_review|discussion|slack (got %q)\n' "$target_type" >&2
     exit 2
     ;;
 esac

@@ -27,6 +27,8 @@ Supported URLs:
   GitHub PR inline review:  https://github.com/<owner>/<repo>/pull/<n>#discussion_r<id>
   GitHub PR toplevel cmt:   https://github.com/<owner>/<repo>/pull/<n>#issuecomment-<id>
   GitHub PR review submit:  https://github.com/<owner>/<repo>/pull/<n>#pullrequestreview-<id>
+  GitHub Discussion body:   https://github.com/<owner>/<repo>/discussions/<n>
+  GitHub Discussion cmt:    https://github.com/<owner>/<repo>/discussions/<n>#discussioncomment-<id>
   Slack permalink:          https://<workspace>.slack.com/archives/<channel>/p<ts>
 
 Slack URLs require --final-stdin; the /tone-capture command fetches the body
@@ -115,6 +117,21 @@ elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#pullrequest
   target_type="pr_review"
   gh_subtype="review"
   slug="pr-${pr_num}-rv${comment_id}"
+elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/discussions/([0-9]+)$ ]]; then
+  owner="${BASH_REMATCH[1]}"
+  repo="${BASH_REMATCH[2]}"
+  pr_num="${BASH_REMATCH[3]}"
+  target_type="discussion"
+  gh_subtype="discussion_body"
+  slug="disc-${pr_num}"
+elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/discussions/([0-9]+)#discussioncomment-([0-9]+)$ ]]; then
+  owner="${BASH_REMATCH[1]}"
+  repo="${BASH_REMATCH[2]}"
+  pr_num="${BASH_REMATCH[3]}"
+  comment_id="${BASH_REMATCH[4]}"
+  target_type="discussion"
+  gh_subtype="discussion_comment"
+  slug="disc-${pr_num}-c${comment_id}"
 elif [[ "$url" =~ ^https://[^.]+\.slack\.com/archives/([^/]+)/p([0-9]+)(\?.*)?$ ]]; then
   slack_channel="${BASH_REMATCH[1]}"
   slack_ts="${BASH_REMATCH[2]}"
@@ -301,6 +318,34 @@ else
         printf 'tone-capture.sh: gh api failed for PR review %s\n' "$comment_id" >&2
         exit 4
       fi
+      ;;
+    discussion_body)
+      # shellcheck disable=SC2016 # GraphQL variable refs (not shell)
+      if ! final_body="$(gh api graphql \
+        -F owner="$owner" -F name="$repo" -F num="$pr_num" \
+        -f query='query($owner:String!,$name:String!,$num:Int!){repository(owner:$owner,name:$name){discussion(number:$num){body}}}' \
+        --jq '.data.repository.discussion.body // ""')"; then
+        printf 'tone-capture.sh: gh api graphql failed for discussion %s/%s#%s\n' "$owner" "$repo" "$pr_num" >&2
+        exit 4
+      fi
+      ;;
+    discussion_comment)
+      # Walk all top-level comments + replies, filter by databaseId.
+      # Pagination limit: first 100 top-level comments × first 100 replies each.
+      # shellcheck disable=SC2016 # GraphQL variable refs (not shell)
+      if ! all_comments_json="$(gh api graphql \
+        -F owner="$owner" -F name="$repo" -F num="$pr_num" \
+        -f query='query($owner:String!,$name:String!,$num:Int!){repository(owner:$owner,name:$name){discussion(number:$num){comments(first:100){nodes{databaseId body replies(first:100){nodes{databaseId body}}}}}}}')"; then
+        printf 'tone-capture.sh: gh api graphql failed for discussion %s/%s#%s\n' "$owner" "$repo" "$pr_num" >&2
+        exit 4
+      fi
+      final_body="$(printf '%s' "$all_comments_json" | jq -r --argjson target "$comment_id" '
+        .data.repository.discussion.comments.nodes
+        | map(., .replies.nodes[])
+        | flatten
+        | map(select(.databaseId == $target))
+        | .[0].body // ""
+      ')"
       ;;
   esac
 fi
