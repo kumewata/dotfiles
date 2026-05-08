@@ -562,6 +562,11 @@ in
         };
         cleanupPeriodDays = 720;
         enableAllProjectMcpServers = false;
+        # Skill listing budget as a fraction of context window chars.
+        # Why: default 0.01 (1%) drops descriptions when many skills are loaded
+        # (cf. https://github.com/anthropics/claude-code/issues/56448). 0.05
+        # gives headroom for the current ~30+ skills setup.
+        skillListingBudgetFraction = 0.05;
         permissions = {
           disableBypassPermissionsMode = "disable";
           additionalDirectories = [
