@@ -102,6 +102,22 @@ Negative:
 
 - "この設計どおりに実装して"
 
+## Airflow
+
+Expected skill: `airflow`
+
+Positive:
+
+- "MWAA 用の DAG を追加したい。requirements.txt と import error も見て"
+
+Boundary:
+
+- "Airflow DAG の parse が遅いので top-level code をレビューして"
+
+Negative:
+
+- "普通の Python スクリプトの型ヒントだけレビューして"
+
 ## Initial Naming And Split Review
 
 - `steering`, `git`, `github`, and `codex-delegate` are scoped clearly enough after the trigger-first rewrite.
