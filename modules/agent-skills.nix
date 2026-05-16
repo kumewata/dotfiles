@@ -4,6 +4,7 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   username,
   ...
@@ -179,10 +180,10 @@ in
         source = ../config/agents/scripts/codex-stop-notify.sh;
         executable = true;
       };
-      # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
-      # default.rules はセッション中に自動追記されるため別ファイルで管理
-      ".codex/config.toml" = {
-        force = true;
+      # Codex CLI 設定の初期テンプレート。
+      # ~/.codex/config.toml は hooks trust などを Codex TUI が追記するため、
+      # Nix store symlink ではなく activation で mutable な実ファイルとして作る。
+      ".codex/config.toml.initial" = {
         text = ''
           personality = "pragmatic"
           model = "gpt-5.5"
@@ -226,7 +227,7 @@ in
           enabled = true
 
           [plugins."lol-report-app@lol-tools-local"]
-          enabled = true
+          enabled = false
 
           [plugins."google-calendar@openai-curated"]
           enabled = true
@@ -267,6 +268,8 @@ in
           timeout = 5
         '';
       };
+      # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
+      # default.rules はセッション中に自動追記されるため別ファイルで管理
       ".codex/rules/nix-managed.rules".text = ''
         # ── allow: 自動許可 ──
 
@@ -910,4 +913,16 @@ in
         };
       }; # end of builtins.toJSON (settings.json)
     }; # end of home.file
+
+  home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    config_path="${homeDir}/.codex/config.toml"
+    initial_path="${homeDir}/.codex/config.toml.initial"
+
+    mkdir -p "${homeDir}/.codex"
+    if [ ! -e "$config_path" ] || [ -L "$config_path" ]; then
+      rm -f "$config_path"
+      cp "$initial_path" "$config_path"
+      chmod 600 "$config_path"
+    fi
+  '';
 }
