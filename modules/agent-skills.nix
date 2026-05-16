@@ -166,6 +166,19 @@ in
         source = ../setup-web.sh;
         executable = true;
       };
+      # Codex Hooks（~/.codex/config.toml の inline hooks から参照）
+      ".codex/hooks/codex-pretooluse-guard.sh" = {
+        source = ../config/agents/scripts/codex-pretooluse-guard.sh;
+        executable = true;
+      };
+      ".codex/hooks/codex-permission-request-guard.sh" = {
+        source = ../config/agents/scripts/codex-permission-request-guard.sh;
+        executable = true;
+      };
+      ".codex/hooks/codex-stop-notify.sh" = {
+        source = ../config/agents/scripts/codex-stop-notify.sh;
+        executable = true;
+      };
       # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
       # default.rules はセッション中に自動追記されるため別ファイルで管理
       ".codex/config.toml" = {
@@ -174,6 +187,16 @@ in
           personality = "pragmatic"
           model = "gpt-5.5"
           model_reasoning_effort = "medium"
+          approval_policy = "on-request"
+          approvals_reviewer = "auto_review"
+
+          [profiles.auto_review]
+          approval_policy = "on-request"
+          approvals_reviewer = "auto_review"
+
+          [profiles.manual_approval]
+          approval_policy = "on-request"
+          approvals_reviewer = "user"
 
           [projects."${homeDir}/Develop/lol-data-portal"]
           trust_level = "untrusted"
@@ -215,7 +238,33 @@ in
           "gpt-5.5" = 3
 
           [features]
+          hooks = true
           terminal_resize_reflow = true
+
+          [[hooks.PreToolUse]]
+          matcher = "^Bash$"
+
+          [[hooks.PreToolUse.hooks]]
+          type = "command"
+          command = "${homeDir}/.codex/hooks/codex-pretooluse-guard.sh"
+          timeout = 5
+          statusMessage = "Checking Bash command"
+
+          [[hooks.PermissionRequest]]
+          matcher = "^Bash$"
+
+          [[hooks.PermissionRequest.hooks]]
+          type = "command"
+          command = "${homeDir}/.codex/hooks/codex-permission-request-guard.sh"
+          timeout = 5
+          statusMessage = "Checking approval request"
+
+          [[hooks.Stop]]
+
+          [[hooks.Stop.hooks]]
+          type = "command"
+          command = "${homeDir}/.codex/hooks/codex-stop-notify.sh"
+          timeout = 5
         '';
       };
       ".codex/rules/nix-managed.rules".text = ''
