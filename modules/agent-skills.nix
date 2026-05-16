@@ -168,6 +168,56 @@ in
       };
       # Codex CLI ルール（~/.codex/rules/nix-managed.rules）
       # default.rules はセッション中に自動追記されるため別ファイルで管理
+      ".codex/config.toml" = {
+        force = true;
+        text = ''
+          personality = "pragmatic"
+          model = "gpt-5.5"
+          model_reasoning_effort = "medium"
+
+          [projects."${homeDir}/Develop/lol-data-portal"]
+          trust_level = "untrusted"
+
+          [projects."${homeDir}/dotfiles"]
+          trust_level = "trusted"
+
+          [projects."${homeDir}/Develop/obsidian"]
+          trust_level = "trusted"
+
+          [projects."${homeDir}/Develop/i9wa4_dotfiles"]
+          trust_level = "trusted"
+
+          [projects."${homeDir}/Develop/sandbox-kumewata"]
+          trust_level = "trusted"
+
+          [projects."${homeDir}/Develop/funa-code"]
+          trust_level = "trusted"
+
+          [projects."${homeDir}/Develop/lol-tools"]
+          trust_level = "trusted"
+
+          [notice.model_migrations]
+          "gpt-5.3-codex" = "gpt-5.4"
+
+          [plugins."slack@openai-curated"]
+          enabled = true
+
+          [plugins."lol-report-app@lol-tools-local"]
+          enabled = true
+
+          [plugins."google-calendar@openai-curated"]
+          enabled = true
+
+          [plugins."superpowers@openai-curated"]
+          enabled = true
+
+          [tui.model_availability_nux]
+          "gpt-5.5" = 3
+
+          [features]
+          terminal_resize_reflow = true
+        '';
+      };
       ".codex/rules/nix-managed.rules".text = ''
         # ── allow: 自動許可 ──
 
