@@ -562,6 +562,9 @@ in
         };
         cleanupPeriodDays = 720;
         enableAllProjectMcpServers = false;
+        enabledPlugins = {
+          "superpowers@claude-plugins-official" = true;
+        };
         # Skill listing budget as a fraction of context window chars.
         # Why: default 0.01 (1%) drops descriptions when many skills are loaded
         # (cf. https://github.com/anthropics/claude-code/issues/56448). 0.05

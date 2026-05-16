@@ -42,7 +42,7 @@
         name = "switch";
         runtimeInputs = [ home-manager.packages.${system}.home-manager ];
         text = ''
-          exec home-manager switch --impure --flake "${./.}#default" "$@"
+          exec home-manager switch --log-format raw --impure --flake "${./.}#default" "$@"
         '';
       };
       checkApp = pkgs.writeShellApplication {
