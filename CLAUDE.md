@@ -126,6 +126,21 @@ ls .claude/skills/
 git add apm.yml apm.lock.yaml
 ```
 
+**vendored skill 更新時のチェックリスト**:
+
+1. `apm install <owner>/<repo>#<commit-sha> -t claude` で必ず SHA pin 付きで更新する
+2. `apm audit` をローカルで実行し、`info-level` 以上の検出がないか確認する
+3. `apm.yml` と `apm.lock.yaml` の差分を確認し、意図した依存更新だけが入っているか見る
+4. 取り込まれた skill の `SKILL.md` や付随ファイルに、明らかな破損や想定外の変更がないか spot check する
+5. 必要なら `nix run .#check` を実行して repository-wide の品質ゲートを通す
+
+**CI との役割分担**:
+
+- `config/agents/skills/**/evals/evals.json` は GitHub Actions の `skills` job で静的検証される
+- 一方、`config/agents/vendored/` に対する `apm audit` は **現時点では CI 未導入** で、ローカル必須運用とする
+- つまり、skill eval の静的整合性は CI、vendored skill の audit はローカル、という分担にしている
+- `skills` job は skill 関連差分がない場合、`has_changes=false` で実質 no-op になる想定
+
 **重要事項**:
 
 - **SHA pin 必須**: `<repo>#main` ではドリフトする。`apm.lock.yaml` の `resolved_commit` から取得して pin する
