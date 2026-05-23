@@ -1,0 +1,26 @@
+{
+  "skill_name": "codex-delegate",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この差分を Codex にレビューさせて second opinion をほしい",
+      "expected_output": "Uses the codex-delegate skill and frames the task as a read-only Codex review or second-opinion workflow rather than direct implementation.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "README を別視点でチェックしてほしい",
+      "expected_output": "May use the codex-delegate skill when the user wants an external review perspective, especially if the review is explicitly framed as a second opinion.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "この設計どおりに実装して",
+      "expected_output": "Does not use the codex-delegate skill because the request is for implementation rather than review-only delegation.",
+      "files": []
+    }
+  ]
+}

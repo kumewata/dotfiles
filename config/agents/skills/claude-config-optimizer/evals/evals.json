@@ -1,0 +1,26 @@
+{
+  "skill_name": "claude-config-optimizer",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "CLAUDE.md と rules の整理方針を見直して",
+      "expected_output": "Uses the claude-config-optimizer skill and focuses on Claude Code configuration artifacts such as CLAUDE.md, rules, skills, agents, commands, or settings.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "Claude Code の changelog を見て breaking changes がないか確認して",
+      "expected_output": "May use the claude-config-optimizer skill for Claude Code changelog review, with emphasis on breaking changes, affected settings, and migration guidance.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "Codex の skill description だけ直して",
+      "expected_output": "Does not use the claude-config-optimizer skill when the task is only about Codex-specific configuration and does not affect shared Claude-facing agent assets.",
+      "files": []
+    }
+  ]
+}

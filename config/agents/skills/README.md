@@ -51,13 +51,16 @@ Structured `evals/` assets currently exist for:
 - `steering`
 - `git`
 - `github`
-
-Priority for next migration wave:
-
 - `orchestrate`
 - `claude-config-optimizer`
 - `codex-delegate`
 - `cc-delegate`
+
+Priority for next migration wave:
+
+- `terraform`
+- `review-assist`
+- `databricks`
 
 ## Steering
 

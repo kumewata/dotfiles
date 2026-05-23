@@ -1,0 +1,26 @@
+{
+  "skill_name": "orchestrate",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この大きめのリファクタリングを段階的に進めたい。planner と reviewer を挟んで",
+      "expected_output": "Uses the orchestrate skill and plans a phased workflow with explicit review checkpoints rather than doing a single straight-line implementation.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "このバグ修正を複数フェーズで安全に進めるならどう組む？",
+      "expected_output": "Leans toward orchestrate when the user explicitly asks for phased execution or safety-oriented sequencing, even if implementation has not started yet.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "この単一ファイルの小さな修正をやって",
+      "expected_output": "Does not use the orchestrate skill for a simple low-risk edit that does not justify a staged multi-phase workflow.",
+      "files": []
+    }
+  ]
+}
