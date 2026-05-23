@@ -1,0 +1,26 @@
+{
+  "skill_name": "steering",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この変更の実装計画とタスクリストを作って",
+      "expected_output": "Uses the steering skill, treats the request as planning work, and creates or updates a steering artifact rather than jumping straight into implementation.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "この調査結果を作業メモとして残したい",
+      "expected_output": "Leans toward steering when durable task documentation is needed, while keeping the scope lightweight if the work is mostly note-taking or investigation.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "この1行の typo を直して",
+      "expected_output": "Does not trigger steering for a trivial single-file edit with no planning overhead.",
+      "files": []
+    }
+  ]
+}

@@ -10,9 +10,121 @@ permissions:
   contents: read
 
 jobs:
+  skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect skill-related changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE_SHA}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+            {
+              echo "has_changes=true"
+              echo "changed_files<<EOF"
+              find config/agents/skills -path '*/evals/evals.json' -type f | sort
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            diff_range="${BASE_SHA}...${HEAD_SHA}"
+          else
+            diff_range="${BASE_SHA}..${HEAD_SHA}"
+          fi
+
+          changed_files="$(git diff --name-only "${diff_range}")"
+          skill_related="$(printf '%s\n' "${changed_files}" | grep -E '^(config/agents/skills/README\.md|config/agents/skills/[^/]+/SKILL\.md|config/agents/skills/[^/]+/evals/evals\.json)$' || true)"
+
+          if [ -n "${skill_related}" ]; then
+            has_changes="true"
+          else
+            has_changes="false"
+          fi
+
+          {
+            echo "has_changes=${has_changes}"
+            echo "changed_files<<EOF"
+            printf '%s\n' "${skill_related}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Show matched files
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          printf '%s\n' "${MATCHED_FILES}"
+        env:
+          MATCHED_FILES: ${{ steps.changes.outputs.changed_files }}
+
+      - name: Validate eval definitions
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          set -euo pipefail
+
+          eval_files="$(find config/agents/skills -path '*/evals/evals.json' -type f | sort)"
+
+          if [ -z "${eval_files}" ]; then
+            echo "No eval definition files found."
+            exit 0
+          fi
+
+          status=0
+
+          while IFS= read -r eval_file; do
+            [ -n "${eval_file}" ] || continue
+            skill_dir="$(dirname "$(dirname "${eval_file}")")"
+            skill_name="$(basename "${skill_dir}")"
+
+            if ! jq -e --arg skill_name "${skill_name}" '
+              .skill_name == $skill_name and
+              (.evals | type == "array" and length > 0) and
+              all(.evals[];
+                (.id | type == "string" and length > 0) and
+                (.type | type == "string" and (. == "positive" or . == "boundary" or . == "negative")) and
+                (.prompt | type == "string" and length > 0) and
+                (.expected_output | type == "string" and length > 0) and
+                (.files | type == "array") and
+                all(.files[]?; type == "string" and length > 0)
+              )
+            ' "${eval_file}" > /dev/null; then
+              echo "::error file=${eval_file}::Invalid eval schema or skill_name mismatch"
+              status=1
+              continue
+            fi
+
+            while IFS= read -r relative_path; do
+              [ -n "${relative_path}" ] || continue
+              if [ ! -e "${skill_dir}/${relative_path}" ]; then
+                echo "::error file=${eval_file}::Referenced file not found: ${relative_path}"
+                status=1
+              fi
+            done < <(jq -r '.evals[].files[]?' "${eval_file}")
+          done <<EOF
+          ${eval_files}
+          EOF
+
+          exit "${status}"
+
   quality:
     runs-on: macos-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
     env:
       USER: ci
 

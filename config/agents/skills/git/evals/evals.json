@@ -1,0 +1,26 @@
+{
+  "skill_name": "git",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この変更のコミットメッセージを Conventional Commits で考えて",
+      "expected_output": "Uses the git skill and focuses on local Git workflow guidance, especially commit message structure and Conventional Commits formatting.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "このブランチ戦略で rebase と merge のどちらがよい？",
+      "expected_output": "Uses the git skill or stays close to Git workflow reasoning, discussing rebase versus merge tradeoffs without drifting into GitHub-specific operations.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "このPRに返信コメントを付けて",
+      "expected_output": "Does not use the git skill because the request is about GitHub review interaction and should route to the github skill instead.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "skill_name": "github",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "gh で PR のレビューコメントに返信したい",
+      "expected_output": "Uses the github skill and focuses on gh-based GitHub operations such as review replies or PR comment handling.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "この issue を親 issue に紐付ける方法を教えて",
+      "expected_output": "Uses the github skill or stays within GitHub issue workflow guidance, including parent-child or sub-issue handling via gh tooling.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "ローカルで commit を分けたい",
+      "expected_output": "Does not use the github skill because this is a local Git workflow request and should route to the git skill instead.",
+      "files": []
+    }
+  ]
+}

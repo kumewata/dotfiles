@@ -6,6 +6,58 @@ This file tracks manual prompts for checking whether Codex implicitly selects th
 
 Run the prompts in a fresh Codex session without explicitly naming the skill. Record whether the expected skill was selected, whether a different skill fired, or whether no skill fired. Use the same prompts before and after editing a `description`.
 
+## Relationship To `evals/`
+
+This file is the human-readable summary layer. Machine-readable skill evaluation assets live under `config/agents/skills/<skill>/evals/`.
+
+- `README.md`: quick regression matrix for manual spot checks in a fresh Codex session
+- `evals/evals.json`: structured prompt cases that can be validated by scripts or CI later
+
+The two should stay aligned. When a prompt is added, removed, or reclassified here, the corresponding `evals/evals.json` should be updated in the same change when that skill has migrated.
+
+## `evals/evals.json` Minimal Schema
+
+Each skill-level `evals/evals.json` should follow this shape:
+
+```json
+{
+  "skill_name": "steering",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この変更の実装計画とタスクリストを作って",
+      "expected_output": "Uses the steering skill and creates or updates a steering artifact.",
+      "files": []
+    }
+  ]
+}
+```
+
+Field intent:
+
+- `skill_name`: matches the skill directory / frontmatter name
+- `id`: stable case identifier within the skill
+- `type`: one of `positive`, `boundary`, `negative`
+- `prompt`: the user utterance used for evaluation
+- `expected_output`: minimum expected behavior or trigger outcome
+- `files`: optional supporting files relative to the skill directory
+
+## Migration Status
+
+Structured `evals/` assets currently exist for:
+
+- `airflow`
+- `steering`
+- `git`
+- `github`
+
+Priority for next migration wave:
+
+- `orchestrate`
+- `claude-config-optimizer`
+- `codex-delegate`
+
 ## Steering
 
 Expected skill: `steering`

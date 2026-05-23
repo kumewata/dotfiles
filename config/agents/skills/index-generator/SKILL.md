@@ -32,7 +32,7 @@ allowed-tools: Read, Write, Glob
 
 ```
 docs/
-.steering/
+~/.local/state/steering/<owner>--<repo>/
 notes/
 .planning/
 ```
@@ -164,7 +164,7 @@ Write ツールで INDEX.md を書き込む（既存ファイルは完全上書�
 **相対パスの記法**:
 
 - INDEX.md から見た相対パスを使用
-- 例: `.steering/` の INDEX.md から `20260223-task/design.md` を参照する場合は `20260223-task/design.md`
+- 例: `~/.local/state/steering/<owner>--<repo>/INDEX.md` から `20260223-task/design.md` を参照する場合は `20260223-task/design.md`
 - サブディレクトリなしの場合は `filename.md` のみ
 
 ### ステップ6: 生成完了を報告
@@ -192,7 +192,7 @@ INDEX.md を生成しました: <target_dir>/INDEX.md
 
 ## INDEX.md の例
 
-`.steering/` ディレクトリに3つのプロジェクトがある場合の例：
+`~/.local/state/steering/<owner>--<repo>/` ディレクトリに3つのプロジェクトがある場合の例：
 
 ```markdown
 # ドキュメントインデックス

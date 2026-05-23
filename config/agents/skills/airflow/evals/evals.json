@@ -2,19 +2,22 @@
   "skill_name": "airflow",
   "evals": [
     {
-      "id": 1,
+      "id": "positive-1",
+      "type": "positive",
       "prompt": "MWAA 用の DAG を追加したい。S3 から日次でファイルを読み、Glue job を起動して、失敗時はリトライしたい。DAG 設計と検証手順を提案して",
       "expected_output": "Uses the airflow skill, reads MWAA guidance, covers DAG idempotency, fixed start_date, catchup decision, MWAA local runner, requirements constraints, S3 deployment, and CloudWatch logs.",
       "files": []
     },
     {
-      "id": 2,
+      "id": "boundary-1",
+      "type": "boundary",
       "prompt": "Airflow DAG の import が遅い。top-level で Variable.get と boto3 client を作っているのでレビューして",
       "expected_output": "Flags top-level Airflow Variable and boto3 client usage, explains DAG parse impact, recommends environment variables or runtime task code, and suggests DagBag/import tests.",
       "files": []
     },
     {
-      "id": 3,
+      "id": "positive-2",
+      "type": "positive",
       "prompt": "MWAA の requirements.txt を更新したら環境更新に失敗した。何を確認すればいい？",
       "expected_output": "Checks MWAA Airflow/Python version, constraints file, pinned packages, provider conflicts, local runner validation, S3 object version update, and CloudWatch requirements_install_ip logs.",
       "files": []
