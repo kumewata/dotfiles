@@ -18,6 +18,11 @@
 
     # 追加の初期化スクリプト（.zshrc の User configuration 以下）
     initContent = ''
+      # Add ~/bin to PATH if it exists
+      if [ -d "''$HOME/bin" ]; then
+        export PATH="''$HOME/bin:''$PATH"
+      fi
+
       # Add ~/.local/bin to PATH if it exists
       if [ -d "''$HOME/.local/bin" ]; then
         export PATH="''$HOME/.local/bin:''$PATH"
