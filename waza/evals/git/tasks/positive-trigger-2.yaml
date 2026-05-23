@@ -1,0 +1,17 @@
+id: boundary-1
+name: rebase-vs-merge-strategy
+description: Mirrors the boundary-1 case from config/agents/skills/git/evals/evals.json.
+tags:
+  - boundary
+  - source:evals-json
+inputs:
+  prompt: "このブランチ戦略で rebase と merge のどちらがよい？"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: mentions-rebase-and-merge
+    config:
+      contains:
+        - "rebase"
+        - "merge"

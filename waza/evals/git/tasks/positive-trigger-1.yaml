@@ -1,0 +1,18 @@
+id: positive-1
+name: conventional-commit-message
+description: Mirrors the positive-1 case from config/agents/skills/git/evals/evals.json.
+tags:
+  - positive
+  - source:evals-json
+inputs:
+  prompt: "この変更のコミットメッセージを Conventional Commits で考えて"
+  files:
+    - path: change-summary.md
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: conventional-commit-shape
+    config:
+      regex_match:
+        - '(?im)^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\([^)]+\))?!?: .+'

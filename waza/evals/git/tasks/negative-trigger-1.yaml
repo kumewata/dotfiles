@@ -1,0 +1,18 @@
+id: negative-1
+name: github-review-reply-request
+description: Mirrors the negative-1 case from config/agents/skills/git/evals/evals.json.
+tags:
+  - negative
+  - source:evals-json
+inputs:
+  prompt: "このPRに返信コメントを付けて"
+expected:
+  should_trigger: false
+graders:
+  - type: text
+    name: omits-git-workflow-language
+    config:
+      not_contains:
+        - "Conventional Commits"
+        - "rebase"
+        - "merge"
