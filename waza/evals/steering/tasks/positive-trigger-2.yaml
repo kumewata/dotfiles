@@ -1,0 +1,17 @@
+id: boundary-1
+name: investigation-memo-lightweight
+description: Mirrors the boundary-1 case from config/agents/skills/steering/evals/evals.json.
+tags:
+  - boundary
+  - source:evals-json
+inputs:
+  prompt: "この調査結果を作業メモとして残したい"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: mentions-lightweight-note-or-tasklist
+    config:
+      contains:
+        - "作業メモ"
+        - "保存先"

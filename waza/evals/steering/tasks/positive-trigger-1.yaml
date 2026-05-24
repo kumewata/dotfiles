@@ -1,0 +1,17 @@
+id: positive-1
+name: implementation-plan-and-tasklist
+description: Mirrors the positive-1 case from config/agents/skills/steering/evals/evals.json.
+tags:
+  - positive
+  - source:evals-json
+inputs:
+  prompt: "この変更の実装計画とタスクリストを作って"
+expected:
+  should_trigger: true
+graders:
+  - type: text
+    name: mentions-steering-artifacts
+    config:
+      contains:
+        - "実装計画"
+        - "タスクリスト"

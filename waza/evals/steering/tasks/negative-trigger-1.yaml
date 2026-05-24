@@ -1,0 +1,18 @@
+id: negative-1
+name: trivial-typo-fix
+description: Mirrors the negative-1 case from config/agents/skills/steering/evals/evals.json.
+tags:
+  - negative
+  - source:evals-json
+inputs:
+  prompt: "この1行の typo を直して"
+expected:
+  should_trigger: false
+graders:
+  - type: text
+    name: omits-steering-artifact-language
+    config:
+      not_contains:
+        - "requirements"
+        - "design"
+        - "tasklist"
