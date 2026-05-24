@@ -86,6 +86,7 @@ Codex セッションでユーザーが Claude Code へのレビューや second
 | nix                            | Nix Flakes / Home Manager の設定変更時                                                                                                                                                                                                  |
 | claude-config-optimizer        | CLAUDE.md, rules/, skills/, agents/ の編集・最適化時                                                                                                                                                                                    |
 | skill-creator                  | 新しいスキルの作成・更新時                                                                                                                                                                                                              |
+| waza-eval                      | skill の新規作成・大幅改善時に Waza ベースの executable eval を設計・更新したいとき。`evals.json` から Waza task / fixture / grader / `waza run` へ落とし込みたい場合                                                                   |
 | index-generator                | INDEX.md の自動生成が必要なとき                                                                                                                                                                                                         |
 
 ## コンテキスト一致時に自動発動

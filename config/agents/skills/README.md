@@ -55,6 +55,7 @@ Structured `evals/` assets currently exist for:
 - `claude-config-optimizer`
 - `codex-delegate`
 - `cc-delegate`
+- `waza-eval`
 
 Priority for next migration wave:
 
@@ -189,6 +190,22 @@ Boundary:
 Negative:
 
 - "普通の Python スクリプトの型ヒントだけレビューして"
+
+## Waza Eval
+
+Expected skill: `waza-eval`
+
+Positive:
+
+- "この skill の trigger を大きく変えたので、Waza の task と grader も整えたい"
+
+Boundary:
+
+- "waza run を入れる前に、fixture を足すべきケースか整理したい"
+
+Negative:
+
+- "Waza CLI のインストール方法を教えて"
 
 ## Initial Naming And Split Review
 

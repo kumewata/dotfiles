@@ -1,0 +1,26 @@
+{
+  "skill_name": "waza-eval",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この skill の trigger を大きく変えたので、Waza の task と grader も整えたい",
+      "expected_output": "Uses the waza-eval skill and focuses on mapping evals.json to Waza tasks, fixtures, graders, and a local-first run.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "waza run を入れる前に、fixture を足すべきケースか整理したい",
+      "expected_output": "Uses the waza-eval skill or stays close to Waza evaluation design, discussing when Waza-only fixtures are warranted.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "Waza CLI のインストール方法を教えて",
+      "expected_output": "Does not use the waza-eval skill because CLI installation is outside this skill's scope.",
+      "files": []
+    }
+  ]
+}
