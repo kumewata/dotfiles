@@ -57,6 +57,7 @@ Priority for next migration wave:
 - `orchestrate`
 - `claude-config-optimizer`
 - `codex-delegate`
+- `cc-delegate`
 
 ## Steering
 
@@ -153,6 +154,22 @@ Boundary:
 Negative:
 
 - "この設計どおりに実装して"
+
+## CC Delegate
+
+Expected skill: `cc-delegate`
+
+Positive:
+
+- "この差分を Claude Code にレビューさせて second opinion をほしい"
+
+Boundary:
+
+- "README を Claude の視点でもチェックしてほしい"
+
+Negative:
+
+- "Claude Code 向けの settings.json を整理して"
 
 ## Airflow
 
