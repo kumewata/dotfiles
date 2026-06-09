@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Insights"
+  short_description: "Generate private monthly Codex usage reports"
+  default_prompt: "Use $codex-insights to generate this month's local Codex workflow report."
+
+policy:
+  allow_implicit_invocation: false
