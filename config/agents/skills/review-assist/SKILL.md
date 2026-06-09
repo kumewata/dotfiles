@@ -1,14 +1,16 @@
 ---
 name: review-assist
 description: |
-  Use when the user wants help understanding and reviewing a PR in an unfamiliar domain, needs background explanation of PR changes and surrounding code conventions, wants consistency checks against existing code patterns, or needs to determine whether to escalate the review to a domain expert. Trigger especially when the user says "help me understand this PR", "explain this PR", "who should review this", "review support for unfamiliar code", "PRのレビューを手伝って", "このPRの背景を教えて", or asks for review guidance with context about being unfamiliar with the domain. Do NOT use for automated code review (use codex-delegate instead), posting review comments directly to GitHub (use github skill), or local git-only operations without a PR context.
+  Use when the user wants help understanding and reviewing a PR in an unfamiliar domain, needs background explanation of PR changes and surrounding code conventions, wants AI-assisted research for human-only review judgments such as architecture, business logic, security/privacy/authorization, data model, operational impact, or needs to determine whether to escalate the review to a domain expert. Trigger especially when the user says "help me understand this PR", "explain this PR", "who should review this", "review support for unfamiliar code", "PRのレビューを手伝って", "このPRの背景を教えて", "人間が見るべき観点を整理して", or asks for review guidance with context about being unfamiliar with the domain. Do NOT use for automated code review (use codex-delegate instead), posting review comments directly to GitHub (use github skill), or local git-only operations without a PR context.
 ---
 
 # Review Assist
 
-Supports human PR reviewers in unfamiliar domains through staged analysis: background explanation, convention consistency checks, review point organization (must/want/info/nits), reviewer qualification assessment with escalation support, and review comment drafting.
+Supports human PR reviewers in unfamiliar domains through staged analysis: background explanation, convention consistency checks, AI-assisted research for human-only judgment points, review point organization (must/want/info/nits), reviewer qualification assessment with escalation support, and review comment drafting.
 
 This skill is a **meta-layer over automated reviews** — it evaluates and supplements automated review comments (Copilot, CodeRabbit, etc.) rather than replacing them.
+
+For architecture, business logic, security/privacy/authorization, data model, and operational impact, the skill should not pretend to make the final human decision. Instead, gather the evidence a human reviewer needs: changed behavior, relevant local conventions, similar existing implementations, linked docs/issues, tests or CI signals, risk hypotheses, and concrete questions to ask the author or domain owner.
 
 ## 1. Prerequisites
 
@@ -151,19 +153,60 @@ done)
 git blame --line-porcelain <target-file> | grep "^author " | sort | uniq -c | sort -rn | head -5
 ```
 
+### 5-D: Human Judgment Research
+
+For each PR, research the areas where human review matters most. The goal is to support the reviewer with evidence, not to replace the reviewer's responsibility.
+
+Extract signals from:
+
+- PR body, linked issues, commit messages, and changed tests
+- Nearby source files, module boundaries, docs, ADRs, README files, and existing patterns
+- Migrations, schema files, config, auth/permission checks, logging, metrics, and rollout mechanisms
+- Existing automated review comments, CI/test status if available, and local test coverage relevant to changed behavior
+
+Cover these dimensions when relevant:
+
+| Dimension                         | AI research to perform                                                                 | Human decision to support                                        |
+| --------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Architecture / design             | Identify affected boundaries, ownership layers, abstractions, and similar implementations | Is the design aligned with the system's intended structure?       |
+| Business logic / requirements     | Trace changed conditions, validations, workflows, domain terms, and linked requirements | Does the behavior match the intended product or business rule?    |
+| Security / privacy / authorization | Check auth gates, permission scopes, sensitive data handling, logging, secrets, and exposure | Is the risk acceptable and are controls appropriate?              |
+| Data model / persistence          | Inspect schema changes, migrations, indexes, backfills, compatibility, retention, and constraints | Is the data design durable and safe to operate over time?         |
+| Operational impact                | Look for feature flags, rollback path, observability, performance-sensitive paths, and batch/job effects | Can this be deployed, monitored, and rolled back safely?          |
+
+For each relevant dimension, produce:
+
+- **Evidence found**: concrete files, patterns, tests, docs, or comments that inform the judgment
+- **Risk hypothesis**: what could go wrong if the human judgment is wrong
+- **Human question**: the specific question the reviewer should answer or ask the PR author/domain owner
+- **Confidence and gaps**: what the AI could verify from repository evidence and what remains unknown
+
+Do not mark a dimension as safe merely because no issue was found. If the repository lacks enough evidence, say so and convert the uncertainty into a concrete question.
+
 ## 6. Phase 3: Analysis and Review
 
 ### Analysis Framework
 
-| Aspect           | Content                                | Domain Knowledge Required       |
-| ---------------- | -------------------------------------- | ------------------------------- |
-| Consistency      | Deviations from existing patterns      | No                              |
-| Missing elements | Required config/meta/tests absent      | No                              |
-| Naming           | File/column name convention compliance | Low                             |
-| Documentation    | Required items present/absent          | Low                             |
-| Design decisions | Better alternatives exist?             | Yes (supplement with questions) |
+| Aspect                           | Content                                                | Domain Knowledge Required       |
+| -------------------------------- | ------------------------------------------------------ | ------------------------------- |
+| Consistency                      | Deviations from existing patterns                      | No                              |
+| Missing elements                 | Required config/meta/tests absent                      | No                              |
+| Naming                           | File/column name convention compliance                 | Low                             |
+| Documentation                    | Required items present/absent                          | Low                             |
+| Architecture / design            | Boundary, abstraction, coupling, and ownership impact   | Yes (support with research)     |
+| Business logic / requirements    | Domain rule, workflow, and user-visible behavior impact | Yes (support with research)     |
+| Security / privacy / authorization | Auth, permission, sensitive data, logging, exposure     | Yes (support with research)     |
+| Data model / persistence         | Schema, migration, compatibility, retention impact      | Yes (support with research)     |
+| Operational impact               | Rollout, rollback, monitoring, performance, job impact  | Yes (support with research)     |
+| Design decisions                 | Better alternatives exist?                             | Yes (supplement with questions) |
 
 **Domain knowledge rule**: When an analysis item requires domain knowledge that the reviewer lacks (marked "Yes" or "Low" above), tag it with `⚠ PR作成者に確認が必要` in the output. This makes it explicit which items are reviewer judgment vs. items requiring author clarification.
+
+**Human judgment support rule**: For items marked "Yes", separate the AI contribution from the human decision:
+
+- AI can say: "I found these affected files, similar patterns, tests, docs, and risk hypotheses."
+- AI should not say: "This business rule is correct" or "This security risk is acceptable" unless that conclusion is directly established by repository policy or tests.
+- Convert unclear conclusions into author/domain-owner questions.
 
 ### Classification Criteria
 
@@ -189,6 +232,24 @@ Output format:
 → **Agree** — この関数は外部入力を受けるため、null チェックは必須です。
 ```
 
+### Human Judgment Support Matrix
+
+After finding review points, summarize the human-only judgment areas:
+
+```markdown
+### 人間が見るべき観点の調査メモ
+
+| 観点 | AIが調査できた根拠 | 人間が判断すべき問い | 未確認・不足情報 |
+| ---- | ------------------ | -------------------- | ---------------- |
+| アーキテクチャ / 設計 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+| 業務ロジック / 要件 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+| セキュリティ / プライバシー / 権限 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+| データモデル / 永続化 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+| 運用影響 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+```
+
+Omit dimensions that are clearly irrelevant to the PR, but state briefly why if the omission would be surprising.
+
 ## 7. Phase 3.5: Reviewer Qualification Assessment
 
 ### Decision Logic
@@ -197,21 +258,23 @@ Output format:
 Inputs:
   - reviewer_expertise (from Phase 0)
   - domain_items: list of items from Phase 3 requiring domain knowledge
+  - unresolved_human_questions: open questions from the Human Judgment Support Matrix
   - has_blocker: any item affects runtime/security/schema integrity
 
 Level A (self-review sufficient):
-  IF reviewer_expertise matches the tech stack
-  OR (domain_items count <= 1 AND has_blocker = false)
+  IF (reviewer_expertise matches the tech stack AND unresolved_human_questions count <= 1)
+  OR (domain_items count <= 1 AND unresolved_human_questions count = 0 AND has_blocker = false)
   → Proceed to Phase 4 with full review
 
 Level B (partial review + handoff):
   IF domain_items count >= 2
+  OR unresolved_human_questions count >= 2
   OR reviewer_expertise = unknown (skipped Phase 0)
   → Produce partial review + escalation memo
 
 Level C (escalation recommended):
   IF most changes are outside reviewer_expertise
-  AND has_blocker = true (design decisions with runtime/security impact)
+  AND has_blocker = true (design decisions with runtime/security/schema/operational impact)
   → Produce background summary + escalation memo only
 ```
 
@@ -274,6 +337,21 @@ Format: `@{name}（{根拠: このディレクトリの変更の{N}%を担当、
 
 {Copilot等のコメントがあれば、採否を理由付きで評価。なければ「自動レビューコメントなし」}
 
+### 人間が見るべき観点の調査メモ
+
+| 観点 | AIが調査できた根拠 | 人間が判断すべき問い | 未確認・不足情報 |
+| ---- | ------------------ | -------------------- | ---------------- |
+| {関連する観点のみ} | {具体的なファイル、既存パターン、テスト、docs、CI signal} | {レビュー担当者またはPR作成者が答えるべき問い} | {AIでは確認できなかった情報} |
+
+### Approve判断の整理
+
+Approve / コメントのみ / Request changes / 適任者へ引き継ぎ のいずれを推奨するかを示す。Approveを推奨する場合でも、根拠と前提を明示する。
+
+- 人間が確認すべき主要論点: {残っている判断}
+- AI調査で確認できた根拠: {根拠}
+- AI / CI / テストに委ねてよいと判断した範囲: {範囲}
+- 残る不確実性: {不確実性。なければ「特になし」}
+
 ### まとめ
 
 {変更の安全性評価、主な確認ポイント}
@@ -292,10 +370,12 @@ Level A の全セクションに加え、以下を追加:
 
 - {一貫性チェック結果}
 - {命名規則の確認結果}
+- {AI調査で根拠を集められた人間判断観点}
 
 判断に専門知識が必要な部分:
 
 - {具体的な点}
+- {未解決の人間判断問い}
 
 ### 適任者候補
 
@@ -307,6 +387,7 @@ Level A の全セクションに加え、以下を追加:
 > 私が確認できた範囲: {一貫性チェック結果のサマリ}
 > 判断に迷っている点: {具体的な点}
 > 確認してほしい論点: {具体的に何を判断してほしいか}
+> AI調査で集めた根拠: {関連ファイル、既存パターン、テスト、docs}
 ```
 
 ### Level C: Escalation
@@ -334,6 +415,7 @@ Level A の全セクションに加え、以下を追加:
 > PR概要: {1-2文の要約}
 > 自分にはこの領域の知見が不足しており、適切なレビューが困難です。
 > 確認してほしい論点: {具体的に何を判断してほしいか}
+> AI調査で集めた根拠: {関連ファイル、既存パターン、テスト、docs}
 ```
 
 ## 9. Phase 5: Review Comment Drafting
