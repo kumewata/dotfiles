@@ -166,13 +166,13 @@ Extract signals from:
 
 Cover these dimensions when relevant:
 
-| Dimension                         | AI research to perform                                                                 | Human decision to support                                        |
-| --------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Architecture / design             | Identify affected boundaries, ownership layers, abstractions, and similar implementations | Is the design aligned with the system's intended structure?       |
-| Business logic / requirements     | Trace changed conditions, validations, workflows, domain terms, and linked requirements | Does the behavior match the intended product or business rule?    |
-| Security / privacy / authorization | Check auth gates, permission scopes, sensitive data handling, logging, secrets, and exposure | Is the risk acceptable and are controls appropriate?              |
-| Data model / persistence          | Inspect schema changes, migrations, indexes, backfills, compatibility, retention, and constraints | Is the data design durable and safe to operate over time?         |
-| Operational impact                | Look for feature flags, rollback path, observability, performance-sensitive paths, and batch/job effects | Can this be deployed, monitored, and rolled back safely?          |
+| Dimension                          | AI research to perform                                                                                   | Human decision to support                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Architecture / design              | Identify affected boundaries, ownership layers, abstractions, and similar implementations                | Is the design aligned with the system's intended structure?    |
+| Business logic / requirements      | Trace changed conditions, validations, workflows, domain terms, and linked requirements                  | Does the behavior match the intended product or business rule? |
+| Security / privacy / authorization | Check auth gates, permission scopes, sensitive data handling, logging, secrets, and exposure             | Is the risk acceptable and are controls appropriate?           |
+| Data model / persistence           | Inspect schema changes, migrations, indexes, backfills, compatibility, retention, and constraints        | Is the data design durable and safe to operate over time?      |
+| Operational impact                 | Look for feature flags, rollback path, observability, performance-sensitive paths, and batch/job effects | Can this be deployed, monitored, and rolled back safely?       |
 
 For each relevant dimension, produce:
 
@@ -187,18 +187,18 @@ Do not mark a dimension as safe merely because no issue was found. If the reposi
 
 ### Analysis Framework
 
-| Aspect                           | Content                                                | Domain Knowledge Required       |
-| -------------------------------- | ------------------------------------------------------ | ------------------------------- |
-| Consistency                      | Deviations from existing patterns                      | No                              |
-| Missing elements                 | Required config/meta/tests absent                      | No                              |
-| Naming                           | File/column name convention compliance                 | Low                             |
-| Documentation                    | Required items present/absent                          | Low                             |
-| Architecture / design            | Boundary, abstraction, coupling, and ownership impact   | Yes (support with research)     |
-| Business logic / requirements    | Domain rule, workflow, and user-visible behavior impact | Yes (support with research)     |
+| Aspect                             | Content                                                 | Domain Knowledge Required       |
+| ---------------------------------- | ------------------------------------------------------- | ------------------------------- |
+| Consistency                        | Deviations from existing patterns                       | No                              |
+| Missing elements                   | Required config/meta/tests absent                       | No                              |
+| Naming                             | File/column name convention compliance                  | Low                             |
+| Documentation                      | Required items present/absent                           | Low                             |
+| Architecture / design              | Boundary, abstraction, coupling, and ownership impact   | Yes (support with research)     |
+| Business logic / requirements      | Domain rule, workflow, and user-visible behavior impact | Yes (support with research)     |
 | Security / privacy / authorization | Auth, permission, sensitive data, logging, exposure     | Yes (support with research)     |
-| Data model / persistence         | Schema, migration, compatibility, retention impact      | Yes (support with research)     |
-| Operational impact               | Rollout, rollback, monitoring, performance, job impact  | Yes (support with research)     |
-| Design decisions                 | Better alternatives exist?                             | Yes (supplement with questions) |
+| Data model / persistence           | Schema, migration, compatibility, retention impact      | Yes (support with research)     |
+| Operational impact                 | Rollout, rollback, monitoring, performance, job impact  | Yes (support with research)     |
+| Design decisions                   | Better alternatives exist?                              | Yes (supplement with questions) |
 
 **Domain knowledge rule**: When an analysis item requires domain knowledge that the reviewer lacks (marked "Yes" or "Low" above), tag it with `⚠ PR作成者に確認が必要` in the output. This makes it explicit which items are reviewer judgment vs. items requiring author clarification.
 
@@ -239,13 +239,13 @@ After finding review points, summarize the human-only judgment areas:
 ```markdown
 ### 人間が見るべき観点の調査メモ
 
-| 観点 | AIが調査できた根拠 | 人間が判断すべき問い | 未確認・不足情報 |
-| ---- | ------------------ | -------------------- | ---------------- |
-| アーキテクチャ / 設計 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
-| 業務ロジック / 要件 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
-| セキュリティ / プライバシー / 権限 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
-| データモデル / 永続化 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
-| 運用影響 | {files/docs/patterns/tests} | {reviewer or author question} | {gap} |
+| 観点                               | AIが調査できた根拠          | 人間が判断すべき問い          | 未確認・不足情報 |
+| ---------------------------------- | --------------------------- | ----------------------------- | ---------------- |
+| アーキテクチャ / 設計              | {files/docs/patterns/tests} | {reviewer or author question} | {gap}            |
+| 業務ロジック / 要件                | {files/docs/patterns/tests} | {reviewer or author question} | {gap}            |
+| セキュリティ / プライバシー / 権限 | {files/docs/patterns/tests} | {reviewer or author question} | {gap}            |
+| データモデル / 永続化              | {files/docs/patterns/tests} | {reviewer or author question} | {gap}            |
+| 運用影響                           | {files/docs/patterns/tests} | {reviewer or author question} | {gap}            |
 ```
 
 Omit dimensions that are clearly irrelevant to the PR, but state briefly why if the omission would be surprising.
@@ -339,8 +339,8 @@ Format: `@{name}（{根拠: このディレクトリの変更の{N}%を担当、
 
 ### 人間が見るべき観点の調査メモ
 
-| 観点 | AIが調査できた根拠 | 人間が判断すべき問い | 未確認・不足情報 |
-| ---- | ------------------ | -------------------- | ---------------- |
+| 観点               | AIが調査できた根拠                                        | 人間が判断すべき問い                           | 未確認・不足情報             |
+| ------------------ | --------------------------------------------------------- | ---------------------------------------------- | ---------------------------- |
 | {関連する観点のみ} | {具体的なファイル、既存パターン、テスト、docs、CI signal} | {レビュー担当者またはPR作成者が答えるべき問い} | {AIでは確認できなかった情報} |
 
 ### Approve判断の整理
