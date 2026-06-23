@@ -11,6 +11,8 @@ Use this skill to prepare compact, file-backed handoffs between coding agents. T
 
 - Codex owns implementation, verification, final diff quality, and changes that must respect the active sandbox and repository `AGENTS.md`.
 - Claude Code owns broad investigation, design alternatives, review passes, and second opinions when that saves Codex tokens.
+- Keep exactly one primary owner for each task flow. The primary owner integrates findings, decides what to apply, and remains accountable for the final state.
+- Treat secondary lanes as `research`, `audit`, or `review-only` unless the user explicitly reassigns primary ownership.
 - The receiving agent may recommend changes, but the current primary agent must inspect and decide what to apply.
 - Use `cc-delegate` from Codex for review-only Claude Code checks. Use `codex-delegate` from Claude Code for review-only Codex checks.
 - Use `agmsg` only as a transport for concise messages or file pointers, not as the source of truth.
@@ -19,11 +21,12 @@ Use this skill to prepare compact, file-backed handoffs between coding agents. T
 
 1. Decide the receiver role: `research`, `plan`, `review`, or `implementation`.
 2. Choose a budget profile: `fast-review`, `balanced-review`, `deep-review`, or `security-review`.
-3. Create or update a handoff file under the active steering task directory's `handoffs/` subdirectory when the details exceed a few lines. Use a path like `~/.local/state/steering/<owner>--<repo>/<task>/handoffs/<handoff-name>.md`.
-4. Keep the message to the other agent under roughly 10 lines and include the handoff path.
-5. Tell the receiver whether file edits are allowed. Default to review-only unless implementation is explicitly requested.
-6. Ask for bounded output: findings, recommended plan, patch summary, or verification result.
-7. After receiving the response, summarize what was accepted, what was rejected, and what remains.
+3. Name the primary owner. If the receiver is a secondary lane, label the assignment as `research`, `audit`, or `review-only`.
+4. Create or update a handoff file under the active steering task directory's `handoffs/` subdirectory when the details exceed a few lines. Use a path like `~/.local/state/steering/<owner>--<repo>/<task>/handoffs/<handoff-name>.md`.
+5. Keep the message to the other agent under roughly 10 lines and include the handoff path.
+6. Tell the receiver whether file edits are allowed. Default to review-only unless implementation is explicitly requested.
+7. Ask for bounded output: findings, recommended plan, patch summary, or verification result.
+8. After receiving the response, summarize what was accepted, what was rejected, and what remains.
 
 ## Budget Profiles
 
@@ -61,6 +64,11 @@ Use these profile names in the handoff. Let `cc-delegate` or `codex-delegate` tr
 ## Requested Role
 
 research | plan | review | implementation
+
+## Ownership
+
+- Primary owner:
+- Secondary lane: research | audit | review-only | none
 
 ## Model / Budget Hint
 
