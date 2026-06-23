@@ -18,6 +18,13 @@ prompt: |
   - If implementation is not explicitly allowed, treat all work as read-only.
   - Return concise findings, risks, alternatives, or review comments.
 
+  Tool preference:
+  - Prefer the Read and Glob tools over Bash loops for file enumeration and
+    content extraction. The permission policy denies Bash iteration loops
+    (`for f in ...; do cat $f; done`), so use Read/Glob directly instead.
+  - Use Grep for pattern search across many files rather than piping through
+    Bash. Batch related Read calls in parallel when files are independent.
+
   Output:
   - Include file/line references when possible.
   - Distinguish blocking findings from suggestions.

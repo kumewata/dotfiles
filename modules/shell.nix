@@ -109,5 +109,8 @@
     # その他の aliases
     pn = "pnpm";
     mdp = "cmux markdown open";
+
+    # Omnigent aliases
+    ocp = "omni run ~/dotfiles/config/omnigent/agents/codex-primary-claude-research";
   };
 }
