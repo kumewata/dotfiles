@@ -162,6 +162,11 @@ in
         source = ../config/genie/skills;
         recursive = true;
       };
+      # Omnigent experimental agent configs.
+      ".config/omnigent/agents" = {
+        source = ../config/omnigent/agents;
+        recursive = true;
+      };
       # Claude Code Web 用セットアップスクリプト（任意リポジトリから参照可能）
       ".claude/scripts/setup-web.sh" = {
         source = ../setup-web.sh;
