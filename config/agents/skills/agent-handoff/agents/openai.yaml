@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Handoff"
+  short_description: "Coordinate bounded handoffs between Codex and Claude Code"
+  default_prompt: "Use agent-handoff to prepare a bounded handoff between Codex and Claude Code."

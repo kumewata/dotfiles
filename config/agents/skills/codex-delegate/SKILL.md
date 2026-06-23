@@ -21,8 +21,22 @@ codex exec -s read-only "<prompt>"
 **Optional flags:**
 
 - `-m <model>` - Override model (default: configured in `~/.codex/config.toml`)
+- `-c model_reasoning_effort=<level>` - Override reasoning effort when the local Codex CLI supports config overrides
 - `-C <path>` - Set working directory (must combine with `--skip-git-repo-check` if the target is outside a trusted git repo)
 - `--skip-git-repo-check` - Skip trusted git repository check. **Required** when reviewing files outside of a git repository (e.g., `~/.local/state/steering/`)
+
+## Profile Selection
+
+Choose a profile before constructing the command. Prefer the lowest-cost profile that can safely answer the review. Use local model aliases or configured model strings instead of hard-coding global defaults in prompts.
+
+| Profile           | Use for                                                                | Model / budget hint           | Command adjustments                                                   |
+| ----------------- | ---------------------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `fast-review`     | Typos, docs clarity, small diffs, simple missing-test checks           | Fast/mini model if configured | optionally add `-m <fast-model>` and `-c model_reasoning_effort=low`  |
+| `balanced-review` | Normal implementation review, focused bug risk review, API consistency | Default configured model      | usually omit `-m`; use `-c model_reasoning_effort=medium` if needed   |
+| `deep-review`     | Architecture review, tricky regressions, broad multi-file changes      | Stronger reasoning model      | optionally add `-m <deep-model>` and `-c model_reasoning_effort=high` |
+| `security-review` | Auth, permissions, secrets, data loss, billing, external side effects  | Strongest available model     | use high reasoning; request severity and exploitability               |
+
+When a handoff includes a profile, preserve it unless risk requires a stronger one. Do not silently downgrade security, authorization, data deletion, or billing-related reviews.
 
 ## Code Review
 
@@ -32,6 +46,12 @@ Construct a prompt that specifies the target files and review criteria.
 
 ```bash
 codex exec -s read-only "Review the implementation in src/auth.ts. Check for bugs, security issues, and adherence to best practices. Provide specific suggestions for improvement."
+```
+
+### Fast review
+
+```bash
+codex exec -s read-only -c model_reasoning_effort=low "Review the current git diff for obvious bugs, typos, docs clarity, and missing lightweight tests. Return only actionable findings."
 ```
 
 ### Multi-file / directory review
@@ -50,6 +70,12 @@ codex exec -s read-only "Review src/db/queries.ts specifically for SQL injection
 
 ```bash
 codex exec -s read-only "Review the changes in the current git diff (staged and unstaged). Check for bugs, style issues, and potential regressions."
+```
+
+### Security review
+
+```bash
+codex exec -s read-only -c model_reasoning_effort=high "Review the current git diff for authentication, authorization, secret handling, data loss, and external side-effect risks. List findings by severity with file/line references and explain exploitability briefly."
 ```
 
 ## Document Review
@@ -85,9 +111,10 @@ If the output is long, use `-o /tmp/codex-review.txt` and read the file afterwar
 ## Prompt Construction Guidelines
 
 1. **Be specific about scope** - Name exact files or directories to review
-2. **State the review criteria** - What to focus on (bugs, security, style, clarity)
-3. **Request structured output** - Ask for categorized findings (e.g., by severity)
-4. **Provide context** - Mention the project's language, framework, or conventions when relevant
+2. **Choose a profile** - Use `fast-review`, `balanced-review`, `deep-review`, or `security-review`
+3. **State the review criteria** - What to focus on (bugs, security, style, clarity)
+4. **Request structured output** - Ask for categorized findings (e.g., by severity)
+5. **Provide context** - Mention the project's language, framework, or conventions when relevant
 
 ## Notes
 

@@ -66,6 +66,12 @@ PR 作成・レビュー、Issue 管理等の GitHub 操作時に使用する。
 
 Codex セッションでユーザーが Claude Code へのレビューや second opinion を明示した場合に使う。Claude Code セッションでは自己委譲になりやすいため、通常は codex-delegate を優先し、ユーザーが逆向きの確認を求めた場合だけ使う。
 
+### agent-handoff（エージェント間引き継ぎ）
+
+Codex / Claude Code / その他 CLI agent の間で調査・設計・レビュー・実装を分担する場合に使う。Codex の usage を節約したいときは、Claude Code に広い調査・設計案・レビューを寄せ、Codex は実装・検証・最終 diff 調整を担当する。
+
+handoff の詳細は active な steering task directory 配下の `handoffs/` に残し、agent 間で送る本文は短い依頼とファイルパスに絞る。`agmsg` を使う場合も伝送路として扱い、source of truth は handoff ファイルに置く。
+
 ### sub-agent（限定委譲）
 
 利用可能な sub-agent がタスクに合う場合は、メイン作業を止めずに限定的に委譲する。Codex では、ユーザーが委譲を明示した場合、またはそのターンで選択済みの skill が特定 sub-agent の利用を明示している場合のみ使い、それ以外は同等の確認をメイン作業で行う。
@@ -82,6 +88,7 @@ Codex セッションでユーザーが Claude Code へのレビューや second
 | Skill / Command                | Trigger                                                                                                                                                                                                                                 |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `orchestrate` / `/orchestrate` | 複雑な機能実装・バグ修正・リファクタリング・セキュリティレビューを段階的に進めたいとき。Claude Code では `/orchestrate` コマンド、Codex では `orchestrate` スキルとして使う。planner → reviewer → codex-review のパイプラインを実行する |
+| agent-handoff                  | Codex と Claude Code の間で作業を分担し、handoff ファイルや agmsg 経由の短い連絡でコンテキスト消費を抑えたいとき                                                                                                                        |
 | frontmatter                    | `~/.local/state/steering/` 配下や docs/ のドキュメント作成時                                                                                                                                                                            |
 | nix                            | Nix Flakes / Home Manager の設定変更時                                                                                                                                                                                                  |
 | claude-config-optimizer        | CLAUDE.md, rules/, skills/, agents/ の編集・最適化時                                                                                                                                                                                    |

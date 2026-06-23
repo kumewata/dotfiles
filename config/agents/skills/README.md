@@ -154,6 +154,7 @@ Positive:
 Boundary:
 
 - "README を別視点でチェックしてほしい"
+- "この設計レビューは deep-review 相当で Codex に見てもらいたい"
 
 Negative:
 
@@ -170,10 +171,28 @@ Positive:
 Boundary:
 
 - "README を Claude の視点でもチェックしてほしい"
+- "この軽い docs 差分を fast-review 相当で Claude Code に見てもらって"
 
 Negative:
 
 - "Claude Code 向けの settings.json を整理して"
+
+## Agent Handoff
+
+Expected skill: `agent-handoff`
+
+Positive:
+
+- "Codex と Claude Code で作業を分担するための handoff を作って"
+
+Boundary:
+
+- "agmsg で Claude に短いレビュー依頼を送れる形にまとめて"
+- "この調査は Claude、実装は Codex に分けて、balanced-review の handoff にして"
+
+Negative:
+
+- "この差分を Claude Code にレビューさせて second opinion をほしい"
 
 ## Airflow
 

@@ -14,6 +14,12 @@
 - 仮定に基づく設計ではなく、事実に基づく設計を行う
 - インフラ管理状況（Terraform 管理の有無等）について推測で記述しない。記述前に必ず実態を確認する
 
+## Cross-Agent Work
+
+- Codex と分担する場合、Claude Code は広い調査・設計案・レビューを優先し、Codex には実装・検証・最終 diff 調整を寄せる
+- `agent-handoff` skill を使い、詳細は active な steering task directory 配下の `handoffs/` に残す
+- agent 間の本文は短い依頼とファイルパスに絞る。`agmsg` は伝送路として扱い、source of truth は handoff ファイルに置く
+
 ## Code Generation & Verification
 
 - コード生成・変更前に schema / config / source of truth を確認する

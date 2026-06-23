@@ -11,7 +11,7 @@ Delegate review tasks from Codex to Claude Code using `claude -p` (non-interacti
 ## Command Pattern
 
 ```bash
-claude -p --permission-mode plan --output-format text --max-turns 4 "<prompt>"
+claude -p --permission-mode plan --output-format text "<prompt>"
 ```
 
 **Required flags:**
@@ -29,11 +29,25 @@ Review only. Do not modify files, create commits, run destructive commands, or p
 
 **Optional flags:**
 
-- `--model <model>` - Override model, e.g. `sonnet` or `opus`.
-- `--max-turns <n>` - Raise for larger reviews; keep small for focused checks.
+- `--model <model>` - Override model when a local Claude Code alias or model string is available.
+- `--effort <level>` - Set reasoning effort (`low`, `medium`, `high`, `xhigh`, or `max`) when useful.
+- `--max-budget-usd <amount>` - Cap API spend for print-mode delegation when a hard budget is useful.
 - `--add-dir <path>` - Allow Claude Code to inspect another directory.
 - `--output-format json` - Use when scripting or preserving metadata.
 - `--no-session-persistence` - Avoid saving a review-only session.
+
+## Profile Selection
+
+Choose a profile before constructing the command. Prefer the cheapest profile that can answer the review safely. If a named model alias is unavailable in the local Claude Code setup, omit `--model` and keep the profile's scope, `--effort`, and output-bounding guidance.
+
+| Profile           | Use for                                                              | Model / budget hint       | Command adjustments                                                            |
+| ----------------- | -------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------ |
+| `fast-review`     | Typos, docs clarity, tiny diffs, simple test gaps                    | Fast/low-cost model       | use `--effort low`; add a fast model alias or `--max-budget-usd` if configured |
+| `balanced-review` | Normal diff review, focused bug risk review, API consistency         | Default balanced model    | use `--effort medium`; usually omit `--model`                                  |
+| `deep-review`     | Broad design review, tricky debugging, multi-file regressions        | Strong reasoning model    | use `--effort high`; use a stronger model alias if configured                  |
+| `security-review` | Auth, permissions, data loss, secret handling, external side effects | Strongest available model | use `--effort high` or stronger; ask for severity and exploitability           |
+
+When the user supplies a profile through `agent-handoff`, preserve it unless the risk clearly demands a stronger review. Do not silently downgrade security, authorization, data deletion, or billing-related reviews.
 
 ## Safety Rules
 
@@ -47,25 +61,37 @@ Review only. Do not modify files, create commits, run destructive commands, or p
 ### Git diff review
 
 ```bash
-claude -p --permission-mode plan --output-format text --max-turns 4 "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the current git diff for bugs, regressions, and missing tests. List findings by severity with file/line references where possible."
+claude -p --permission-mode plan --output-format text --effort medium "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the current git diff for bugs, regressions, and missing tests. List findings by severity with file/line references where possible."
+```
+
+### Fast review
+
+```bash
+claude -p --permission-mode plan --output-format text --effort low "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the current git diff for obvious bugs, typos, docs clarity, and missing lightweight tests. Return only actionable findings."
 ```
 
 ### Focused review
 
 ```bash
-claude -p --permission-mode plan --output-format text --max-turns 4 "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review src/auth.ts specifically for authentication bypasses, token handling bugs, and unsafe error paths. List findings by severity with file/line references where possible."
+claude -p --permission-mode plan --output-format text --effort medium "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review src/auth.ts specifically for authentication bypasses, token handling bugs, and unsafe error paths. List findings by severity with file/line references where possible."
 ```
 
 ### Multi-file review
 
 ```bash
-claude -p --permission-mode plan --output-format text --max-turns 6 "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the changes under src/api/ for error handling, input validation, and API consistency. List findings by severity with file/line references where possible."
+claude -p --permission-mode plan --output-format text --effort high "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the changes under src/api/ for error handling, input validation, and API consistency. List findings by severity with file/line references where possible."
+```
+
+### Security review
+
+```bash
+claude -p --permission-mode plan --output-format text --effort high "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review the current git diff for authentication, authorization, secret handling, data loss, and external side-effect risks. List findings by severity with file/line references and explain exploitability briefly."
 ```
 
 ## Document Review
 
 ```bash
-claude -p --permission-mode plan --output-format text --max-turns 4 "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review docs/architecture.md for logical gaps, outdated claims, and unclear assumptions. Return concise findings and open questions."
+claude -p --permission-mode plan --output-format text --effort medium "Review only. Do not modify files, create commits, run destructive commands, or perform external side effects. Review docs/architecture.md for logical gaps, outdated claims, and unclear assumptions. Return concise findings and open questions."
 ```
 
 ## Execution in Codex
@@ -84,9 +110,10 @@ If the command fails because Claude Code is not installed or authenticated, repo
 
 1. **State review-only scope** - Explicitly prohibit edits and side effects.
 2. **Name the target** - Files, directories, current diff, staged diff, or base branch.
-3. **State the review criteria** - Bugs, security, regressions, tests, clarity, or design risks.
-4. **Request structured output** - Findings by severity, with file/line references where possible.
-5. **Keep context bounded** - Delegate one coherent review question at a time.
+3. **Choose a profile** - Use `fast-review`, `balanced-review`, `deep-review`, or `security-review`.
+4. **State the review criteria** - Bugs, security, regressions, tests, clarity, or design risks.
+5. **Request structured output** - Findings by severity, with file/line references where possible.
+6. **Keep context bounded** - Delegate one coherent review question at a time.
 
 ## Notes
 
