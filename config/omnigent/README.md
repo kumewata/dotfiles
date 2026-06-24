@@ -54,9 +54,11 @@ First successful run on 2026-06-23 (normal terminal):
 
 - Credentials were already configured (`omni config list` shows Claude and Codex
   subscription credentials, both default), so `omni setup` was not needed again.
-- `omni run` is a TUI that needs a real TTY. Driving it from a non-interactive
-  shell required wrapping it in a detached `tmux` session; the local server,
-  runner, and `codex` harness all came up and a turn completed normally — the
+- `omni run` is a TUI that needs a real TTY. These first runs were driven from a
+  non-interactive shell (an agent harness), so they had to wrap `omni run` in a
+  detached `tmux` session to give it a PTY. **Interactive users do not need
+  tmux** — see "Interactive use (TUI / GUI)" below. Either way the local server,
+  runner, and `codex` harness came up and a turn completed normally; the
   headless-runner stall seen in the Codex sandbox did not reproduce.
 - The read-only task ("inspect AGENTS.md and summarize when to delegate to
   Claude") was handled directly by Codex without dispatching `claude_research`,
@@ -99,6 +101,50 @@ From the repository checkout, the same config can be run directly:
 omni run config/omnigent/agents/codex-primary-claude-research \
   -p "Inspect AGENTS.md and summarize when to delegate to Claude. Do not edit files."
 ```
+
+## Interactive use (TUI / GUI)
+
+Day-to-day use is interactive. The `-p` one-shot and the `tmux` wrapper above
+were only needed to drive Omnigent from a non-interactive agent shell.
+
+**TUI** — in a normal terminal, just start the agent and an interactive REPL
+opens directly (no `tmux` needed):
+
+```bash
+omni run config/omnigent/agents/codex-primary-claude-research
+# or the Home Manager deployed copy:
+omni run ~/.config/omnigent/agents/codex-primary-claude-research
+```
+
+**GUI** — the same `omni run` (or `omni server start`) spins up a local server
+that also serves a browser UI:
+
+- Open `http://127.0.0.1:6767/` for the conversation list / chat UI.
+- A specific conversation lives at `http://127.0.0.1:6767/c/<conv_id>`. The TUI
+  also prints this conversation link in its status bar, so you can jump from the
+  terminal to the browser on the same live session.
+- The server binds `127.0.0.1:6767` and keeps state in a machine-global SQLite
+  DB under the Omnigent data dir, so `run` and `server` share one history.
+
+**Resume / continue / attach**:
+
+```bash
+omni run -c <agent>            # continue the most recent conversation for this agent
+omni run -r <conv_id> <agent>  # resume a stored conversation
+omni resume <conv_id>          # resume, auto-dispatching by the conversation's runtime
+omni attach <conv_id>          # join a LIVE session as a thin client (starts nothing)
+```
+
+**Lifecycle / cleanup**:
+
+```bash
+omni server status   # is the background server up?
+omni stop            # stop the background server and the local host daemon
+```
+
+`omni run` from the repo checkout still drops an ephemeral Codex HOME at
+`.codex-tmp/` (gitignored); from the `~/.config` copy it does not pollute the
+repo. Run `omni stop` when you are done to release `127.0.0.1:6767`.
 
 ## Evaluation
 
