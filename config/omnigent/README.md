@@ -66,9 +66,22 @@ First successful run on 2026-06-23 (normal terminal):
   `.codex-tmp/` in the cwd; it is now gitignored. Stop background processes with
   `omni stop` after a run.
 
-Open follow-up: exercise a task large enough to actually trigger a
-`claude_research` delegation, to validate the secondary-lane prompt and the
-findings-vs-decision separation in the response.
+Delegation validated on 2026-06-24 (normal terminal):
+
+- A broad read-only task ("audit how this repo manages third-party agent
+  skills, separating Claude findings from your own decision") did trigger the
+  secondary lane. The server logs showed two conversations — the Codex primary
+  plus a child session — and the runner log confirmed the dispatch:
+  `Claude terminal auto-create ... agent_name=claude_research`,
+  `native-claude routing: Claude CLI login (subscription provider 'claude')`.
+- Codex stayed the primary owner: it produced the final integrated answer with
+  the requested `Accepted / Rejected / Verified` structure and file/line
+  references, and ended with "No files were modified."
+- The findings-vs-decision separation held — Claude's research was surfaced as
+  inputs, and Codex stated what it accepted, rejected, and verified.
+- Note: an earlier attempt on 2026-06-23 failed mid-turn with
+  `usageLimitExceeded` (Codex workspace spend cap), not an Omnigent fault. The
+  retry succeeded once the cap reset.
 
 ## Trial Run
 
