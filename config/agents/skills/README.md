@@ -56,6 +56,7 @@ Structured `evals/` assets currently exist for:
 - `codex-delegate`
 - `cc-delegate`
 - `waza-eval`
+- `japanese-tech-writing`
 
 Priority for next migration wave:
 
@@ -225,6 +226,25 @@ Boundary:
 Negative:
 
 - "Waza CLI のインストール方法を教えて"
+
+## Japanese Tech Writing
+
+Expected skill: `japanese-tech-writing`
+
+Positive:
+
+- "この変更の PR 本文を日本語で書いて"
+- "この日本語の docs、LLM っぽい言い回しと冗長を削って一文一行で整えて"
+
+Boundary:
+
+- "Write the PR description for this change in English"
+
+Negative:
+
+- "この関数のバグを直して"
+
+Note: `japanese-tech-writing`（客観的な文章規範）と `tone`（個人の文体再現）は責務が異なり併用できる。日本語 PR 本文では両方が同時に該当しうるため、規範適用が漏れていないかをこの matrix で確認する。
 
 ## Initial Naming And Split Review
 

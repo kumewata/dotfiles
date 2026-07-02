@@ -101,4 +101,7 @@ handoff の詳細は active な steering task directory 配下の `handoffs/` �
 以下のスキルは description に基づいて自動発動するため、明示的なトリガーは不要:
 
 terraform, terraform-test, terraform-style-guide, terraform-refactor-module,
-draw-io, bigquery, snowflake, databricks, dbt, pdf, xlsx
+draw-io, bigquery, snowflake, databricks, dbt, pdf, xlsx,
+japanese-tech-writing
+
+`japanese-tech-writing` は、日本語の技術文書（PR 本文・docs・記事・コミットメッセージ）を書く／推敲するときに客観的な文章規範を適用する。個人の文体を再現する `tone` skill とは責務が異なり、併用できる（規範が先、文体が後）。英語のみの出力やコードのみの変更では発火しない。

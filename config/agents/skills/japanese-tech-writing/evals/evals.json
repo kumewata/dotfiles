@@ -1,0 +1,33 @@
+{
+  "skill_name": "japanese-tech-writing",
+  "evals": [
+    {
+      "id": "positive-1",
+      "type": "positive",
+      "prompt": "この変更の PR 本文を日本語で書いて",
+      "expected_output": "Uses the japanese-tech-writing skill and drafts Japanese PR prose following the norms (一文一行, 中黒・ダッシュを避ける, LLM っぽい空句の禁止, 冗長の排除).",
+      "files": []
+    },
+    {
+      "id": "positive-2",
+      "type": "positive",
+      "prompt": "この日本語の docs、LLM っぽい言い回しと冗長を削って一文一行で整えて",
+      "expected_output": "Uses the japanese-tech-writing skill to revise Japanese technical prose, removing LLM-style empty phrases and redundancy and applying one-sentence-per-line formatting.",
+      "files": []
+    },
+    {
+      "id": "boundary-1",
+      "type": "boundary",
+      "prompt": "Write the PR description for this change in English",
+      "expected_output": "Does not apply the japanese-tech-writing norms because the requested output is English-only prose, which is out of this skill's scope.",
+      "files": []
+    },
+    {
+      "id": "negative-1",
+      "type": "negative",
+      "prompt": "この関数のバグを直して",
+      "expected_output": "Does not use the japanese-tech-writing skill because the request is a code-only change with no Japanese prose to write or revise.",
+      "files": []
+    }
+  ]
+}
