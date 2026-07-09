@@ -674,6 +674,11 @@ in
           command = "~/.claude/scripts/statusline.sh";
         };
         cleanupPeriodDays = 720;
+        # ふだんづかいの既定 effort（Fable 5 想定）。settings.json は Nix 管理
+        # (read-only symlink) のため /effort での永続変更は不可。セッション単位の
+        # 変更は `claude --effort <level>` を使う。subagent/skill frontmatter の
+        # effort override はこの値より優先される。
+        effortLevel = "medium";
         enableAllProjectMcpServers = false;
         enabledPlugins = {
           "superpowers@claude-plugins-official" = true;
