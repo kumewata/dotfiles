@@ -3,6 +3,7 @@ name: doc-updater
 description: Documentation specialist for keeping documentation current with the codebase. Use after significant code changes to update README, CLAUDE.md, design docs, and other documentation.
 tools: ["Read", "Write", "Edit", "Grep", "Glob"]
 model: sonnet
+effort: medium
 ---
 
 # Documentation Specialist

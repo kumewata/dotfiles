@@ -1,6 +1,7 @@
 ---
 name: steering-research
 model: haiku
+effort: low
 description: >
   steering プロジェクト専用のリサーチエージェント。
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」

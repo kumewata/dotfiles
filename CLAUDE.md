@@ -43,8 +43,8 @@ apm audit                                     # 隠しUnicode検出
   - `agent-skills.nix` - エージェント関連の統一管理モジュール。[agent-skills-nix](https://github.com/Kyure-A/agent-skills-nix) によるスキルデプロイ（`~/.claude/skills/`, `~/.agents/skills/`）に加え、Codex 互換パス `~/.codex/skills/` の維持、エージェント定義・コマンド・ルール・スクリプトのデプロイ、Claude Code グローバル設定（`~/.claude/settings.json`）、Codex CLI ルール（`~/.codex/rules/`）も管理。
   - `apm.nix` - [Microsoft APM](https://github.com/microsoft/apm) CLI を release tarball から fetchurl で取得して Nix 管理化。3rd-party agent skill の宣言的・lock 付き管理に使用。PyInstaller bundle のため `dontStrip` / `dontFixup` / `dontPatchELF` を全て無効化。
 - `config/agents/skills/` - Claude Code / OpenAI Codex 共通のスキル定義。agent-skills-nix 経由でデプロイ。代表例: cross-agent ハンドオフ用の `agent-handoff`、相互レビュー用の `codex-delegate` / `cc-delegate`、Lakeview ダッシュボード設計者用の `steering-lakeview-handoff` 等（完全な一覧は同ディレクトリ参照）。
-- `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件と自律実行方針を定義する。Codex 向けのリポジトリ行動ルールは `AGENTS.md`、CLI 権限ルールは `~/.codex/rules/nix-managed.rules` で管理する。
-- `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）と検索用エージェント（steering-research, doc-search）を含む。
+- `config/agents/rules/` - Claude Code のグローバルルール。`~/.claude/rules/` にデプロイされ、起動時に常に読み込まれる。スキルの発動トリガー条件と自律実行方針、および目的別モデル/effort 使い分け方針（`role-based-model-selection.md`）を定義する。Codex 向けのリポジトリ行動ルールは `AGENTS.md`、CLI 権限ルールは `~/.codex/rules/nix-managed.rules` で管理する。
+- `config/agents/definitions/` - エージェント定義。`~/.claude/agents/` にデプロイ。各定義は frontmatter の `model:` / `effort:` で目的別にモデル・reasoning effort を固定する（方針は `config/agents/rules/role-based-model-selection.md`）。開発ワークフロー用エージェント（planner, architect, code-reviewer, tdd-guide, security-reviewer, doc-updater, python-reviewer, terraform-reviewer）、役割別の委譲先エージェント（code-explore, implementer, heavy-implementer, test-runner）、検索用エージェント（steering-research, doc-search）を含む。
 - `config/agents/commands/` - Claude Code のカスタムコマンド。`~/.claude/commands/` にデプロイ。代表例: `/orchestrate`（複数エージェントの sequential pipeline）、`/update-steering`、`/tone-capture`、`/tone-status` 等（完全な一覧は同ディレクトリと `modules/agent-skills.nix` の `agentCommands` を参照）。
 - `config/agents/skills/orchestrate/` - Claude Code の `/orchestrate` と同じ運用意図を Codex でも使えるようにした共通オーケストレーションスキル。`~/.agents/skills/` にデプロイされ、移行期間は `~/.codex/skills/` からも参照できる。
 - `config/agents/scripts/` - Claude Code 用のヘルパースクリプト。`~/.claude/scripts/` にデプロイ。statusline 表示用スクリプト・`sync-to-genie.sh`（Databricks Genie Code 同期）等を含む。
@@ -66,7 +66,7 @@ apm audit                                     # 隠しUnicode検出
 
 **エージェント定義** (`config/agents/definitions/<name>.md`):
 
-1. ファイル作成。frontmatter: `name`, `description`, `tools`, `model`
+1. ファイル作成。frontmatter: `name`, `description`, `tools`, `model`, `effort`（任意。`low`/`medium`/`high`/`xhigh`/`max`。session の effort を override）
 2. `modules/agent-skills.nix` の `agentDefinitions` リストに名前を追加
 
 **コマンド** (`config/agents/commands/<name>.md`):

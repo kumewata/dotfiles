@@ -24,15 +24,19 @@ let
   # デプロイ対象のエージェント定義（config/agents/definitions/ 配下）
   agentDefinitions = [
     "architect"
+    "code-explore"
     "code-reviewer"
     "doc-search"
     "doc-updater"
+    "heavy-implementer"
+    "implementer"
     "planner"
     "python-reviewer"
     "security-reviewer"
     "steering-research"
     "tdd-guide"
     "terraform-reviewer"
+    "test-runner"
   ];
 
   # デプロイ対象のコマンド（config/agents/commands/ 配下）
@@ -109,6 +113,8 @@ in
       # ルール（起動時に全て読み込まれ、スキルの発動トリガーとして機能する）
       ".claude/rules/skill-triggers.md".source = ../config/agents/rules/skill-triggers.md;
       ".claude/rules/verification-standards.md".source = ../config/agents/rules/verification-standards.md;
+      ".claude/rules/role-based-model-selection.md".source =
+        ../config/agents/rules/role-based-model-selection.md;
       # Codex 互換パス。移行期間は ~/.codex/skills からも同じ内容を参照できるようにする。
       ".codex/skills" = {
         source = config.lib.file.mkOutOfStoreSymlink "${homeDir}/.agents/skills";

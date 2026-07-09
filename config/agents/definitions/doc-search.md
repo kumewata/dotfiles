@@ -1,6 +1,7 @@
 ---
 name: doc-search
 model: haiku
+effort: low
 description: >
   汎用ドキュメント検索エージェント。
   「あの要件はどこだっけ？」「このプロジェクトの設計詳細は？」「タスク進捗を確認したい」
