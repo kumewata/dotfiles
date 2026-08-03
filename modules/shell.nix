@@ -105,7 +105,8 @@
 
   home.shellAliases = {
     # Home Managerの設定を更新するコマンドのエイリアス
-    hms = "nix run --impure github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default";
+    # flake.lock で pin した home-manager を使うため、CLI と module の版ずれが起きない
+    hms = "nix run --impure .#switch --";
 
     # その他
     ll = "ls -l";

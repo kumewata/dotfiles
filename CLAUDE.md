@@ -10,7 +10,8 @@ This is a macOS (Apple Silicon) dotfiles repo managed with **Nix Flakes** and **
 
 ```bash
 # Apply configuration changes (defined as shell alias `hms`)
-nix run --impure github:nix-community/home-manager/release-25.11 -- switch --impure --flake .#default
+# flake.lock で pin した home-manager を使うため、CLI と module の版ずれが起きない
+nix run --impure .#switch
 
 # Format the repository
 nix fmt
