@@ -29,7 +29,7 @@ steering 済みの Lakeview ダッシュボードタスクで、Genie Code へ�
 - **bar**: 軸カスタムソート / データラベル / Marimekko **非対応** → SQL ORDER BY で並びを制御、title で補足
 - **line**: セグメント連結 (gap bridging) **非対応** → SQL 側で COALESCE による NULL 埋め
 - **table**: encoding の `type` を **省略禁止** → 必ず `quantitative` / `nominal` / `temporal` / `ordinal` を明示。**ただし新規追加カラムでは type 明示で逆に空欄になるケースあり** (Lakeview スキーマキャッシュ問題、要 case-by-case 検証)
-- **pivot**: セル内条件付き書式 / 小計行 **非対応** → SQL で UNION ALL による小計行展開
+- **pivot**: 小計行 (自動小計) **非対応** → SQL で UNION ALL による小計行展開。**セル内条件付き書式は対応済み** (spec v4 `cells.fields[].style.rules`、`startswith` 等のテキスト関数条件。2026-07 実機確認)
 - **counter**: 1 ウィジェット 1 KPI → 複数値は counter を並べて配置
 - **共通**: NULL 表示は SQL 側で `COALESCE(col, '—')`、数値整形は SQL 側で `FORMAT_NUMBER(val, '#,##0')`
 - **>30KB JSON**: UI 貼り付け不可 → `databricks lakeview update <ID> --json @file.json` 経由

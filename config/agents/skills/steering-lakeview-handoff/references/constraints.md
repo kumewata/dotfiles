@@ -4,14 +4,14 @@
 
 ## ウィジェット型別の非対応機能と代替策
 
-| Widget  | 非対応機能                                  | 代替策                                                                                                               |
-| ------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| bar     | 軸カスタムソート / データラベル / Marimekko | SQL `ORDER BY` で並び制御、title で補足表示                                                                          |
-| line    | セグメント連結 (gap bridging)               | SQL 側で `COALESCE(col, 0)` による NULL 埋め                                                                         |
-| table   | encoding `type` 省略 (列が消える)           | `quantitative` / `nominal` / `temporal` / `ordinal` を明示。ただし新規追加カラムでは type 省略の方が安全なケースあり |
-| pivot   | セル内条件付き書式 / 小計行                 | SQL で `UNION ALL` による小計行展開                                                                                  |
-| counter | 複数値の並列表示                            | counter を複数配置 (1 widget = 1 KPI)                                                                                |
-| pie     | 10+ カテゴリ                                | SQL で TOP N + "その他" に集約                                                                                       |
+| Widget  | 非対応機能                                  | 代替策                                                                                                                                                                      |
+| ------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| bar     | 軸カスタムソート / データラベル / Marimekko | SQL `ORDER BY` で並び制御、title で補足表示                                                                                                                                 |
+| line    | セグメント連結 (gap bridging)               | SQL 側で `COALESCE(col, 0)` による NULL 埋め                                                                                                                                |
+| table   | encoding `type` 省略 (列が消える)           | `quantitative` / `nominal` / `temporal` / `ordinal` を明示。ただし新規追加カラムでは type 省略の方が安全なケースあり                                                        |
+| pivot   | 小計行 (自動小計)                           | SQL で `UNION ALL` による小計行展開。**セル内条件付き書式は対応済み** (spec v4 `encodings.cells.fields[].style.rules`、`startswith` 等のテキスト関数条件。2026-07 実機確認) |
+| counter | 複数値の並列表示                            | counter を複数配置 (1 widget = 1 KPI)                                                                                                                                       |
+| pie     | 10+ カテゴリ                                | SQL で TOP N + "その他" に集約                                                                                                                                              |
 
 ## 共通制約
 
