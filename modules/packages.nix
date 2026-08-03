@@ -13,6 +13,7 @@
     pkgs.gh # GitHub CLI
     pkgs.gws # Google Workspace CLI
     pkgs.jq # JSON processor (hooks/scripts で使用)
+    pkgs.herdr # ターミナル常駐のエージェント multiplexer 🐑
     pkgs.hello # 動作確認用のテストツール 👋
   ];
 }
