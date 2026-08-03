@@ -15,6 +15,7 @@
     ./modules/packages.nix
     ./modules/quality.nix
     ./modules/shell.nix
+    ./modules/tmux.nix
   ];
 
   # ユーザー情報の設定（extraSpecialArgs から受け取った username を使用）
