@@ -16,6 +16,19 @@
       plugins = [ "git" ];
     };
 
+    # ログインシェル用の初期化（.zprofile 相当）
+    profileExtra = ''
+      # Homebrew（Apple Silicon）
+      if [ -x /opt/homebrew/bin/brew ]; then
+        eval "''$(/opt/homebrew/bin/brew shellenv zsh)"
+      fi
+
+      # Obsidian CLI
+      if [ -d /Applications/Obsidian.app/Contents/MacOS ]; then
+        export PATH="''$PATH:/Applications/Obsidian.app/Contents/MacOS"
+      fi
+    '';
+
     # 追加の初期化スクリプト（.zshrc の User configuration 以下）
     initContent = ''
       # Add ~/bin to PATH if it exists
